@@ -1,6 +1,7 @@
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import cloudinary from "../lib/cloudinary.js";
 
 //Signup a new user
 export const signup = async () => {
@@ -66,6 +67,21 @@ export const login = async (req, res) => {
   }
 };
 
+//Controller to check if user is authenticated
+export const isAuthenticated = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ success: true, userData: user });
+  } catch (error) {
+    console.error("Error checking authentication:", error);
+    res.json({ success: false, message: "Server error" });
+  }
+};
+
 //Controller to get user profile
 export const getProfile = async (req, res) => {
   const userId = req.user.id;
@@ -84,49 +100,31 @@ export const getProfile = async (req, res) => {
 //Controller to update user profile
 export const updateProfile = async (req, res) => {
   const userId = req.user.id;
-  const { fullname, bio, profilePic } = req.body;
+  const { profilePic, fullname, bio } = req.body;
   try {
-    const updatedData = { fullname, bio, profilePic };
-    const user = await User.findByIdAndUpdate(userId, updatedData, {
-      new: true,
-    }).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json({
-      success: true,
-      userData: user,
-      message: "Profile updated successfully",
-    });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    res.json({ success: false, message: "Server error" });
-  }
-};
-
-//Controller to change user password
-export const changePassword = async (req, res) => {
-  const userId = req.user.id;
-  const { currentPassword, newPassword } = req.body;
-  try {
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect" });
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+        folder: "profile_pics",
+        width: 150,
+        height: 150,
+        crop: "fill",
+        gravity: "face",
+        format: "png",
+        public_id: `profile_${userId}`,
+        overwrite: true,
+      });
+      user.profilePic = uploadResponse.secure_url;
     }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-    user.password = hashedPassword;
+    if (fullname) user.fullname = fullname;
+    if (bio) user.bio = bio;
     await user.save();
-    res.json({ success: true, message: "Password changed successfully" });
+    res.json({ success: true, userData: user, message: "Profile updated" });
   } catch (error) {
-    console.error("Error changing password:", error);
+    console.error("Error updating profile:", error);
     res.json({ success: false, message: "Server error" });
   }
 };
