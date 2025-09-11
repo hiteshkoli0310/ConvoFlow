@@ -4,7 +4,9 @@ import cors from "cors";
 import http from "http";
 import { connect } from "http2";
 import { connectDB } from "./lib/db.js";
-import {server} from "socket.io";
+import { Server } from "socket.io";
+import UserRouter from "./routes/userRoutes.js";
+import MessageRouter from "./routes/messageRoutes.js";
 
 // Initialize Express app and HTTP server
 const app = express();
@@ -12,7 +14,7 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 //Initialize Socket.io server
-export const io = new server.Server(server, {
+export const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST", "PUT"],
@@ -26,7 +28,7 @@ export const userSocketMap = {}; // userId -> socketId
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
   console.log("New client connected with ID:", userId);
-  
+
   if (userId) {
     userSocketMap[userId] = socket.id;
   }
@@ -35,14 +37,13 @@ io.on("connection", (socket) => {
   io.emit("online-users", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected with ID:", userId);  
+    console.log("Client disconnected with ID:", userId);
     if (userId) {
       delete userSocketMap[userId];
     }
     io.emit("online-users", Object.keys(userSocketMap));
   });
-  
-}
+});
 
 // Middleware setup
 app.use(cors());

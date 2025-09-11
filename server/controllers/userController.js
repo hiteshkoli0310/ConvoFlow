@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 
 //Signup a new user
-export const signup = async () => {
+export const signup = async (req, res) => {
   const { fullname, email, password, bio } = req.body;
 
   try {
@@ -68,14 +68,14 @@ export const login = async (req, res) => {
 };
 
 //Controller to check if user is authenticated
-export const isAuthenticated = async (req, res) => {
+export const checkAuth = async (req, res) => {
   const userId = req.user.id;
   try {
     const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json({ success: true, userData: user });
+    res.json({ success: true, user: user });
   } catch (error) {
     console.error("Error checking authentication:", error);
     res.json({ success: false, message: "Server error" });

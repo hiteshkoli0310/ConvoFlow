@@ -1,4 +1,4 @@
-import { createContext, use } from "react";
+import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {io} from "socket.io-client";
@@ -27,9 +27,10 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             toast.error("Session expired. Please login again.");
         }
+    }
     
     //Login function to handle user authentication and socket connection
-    const login = (state, credentials) => {
+    const login = async (state, credentials) => {
         try{
             const {data} = await axios.post(`/api/auth/${state}`, credentials);
             if (data.success){
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }) => {
         newSocket.connect();
         setSocket(newSocket);
 
-        newSocket.on("getOnlineUsers", (userIds) => {
+        newSocket.on("online-users", (userIds) => {
             setOnlineUsers(userIds);
         });
     }
@@ -92,7 +93,10 @@ export const AuthProvider = ({ children }) => {
         axios,
         authUser,
         onlineUsers,
-        socket
+        socket,
+        login,
+        logout,
+        checkAuth
     };
 
     return (
