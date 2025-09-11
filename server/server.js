@@ -2,62 +2,66 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import http from "http";
-import { connect } from "http2";
 import { connectDB } from "./lib/db.js";
+import userRouter from "./routes/userRoutes.js";
+import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
-import UserRouter from "./routes/userRoutes.js";
-import MessageRouter from "./routes/messageRoutes.js";
 
-// Initialize Express app and HTTP server
+//Create Express app and HTTP server
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000;
 
-//Initialize Socket.io server
+//Socket.io setup
 export const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT"],
-  },
+  cors: { origin: "*" },
 });
 
 //Store online users
-export const userSocketMap = {}; // userId -> socketId
+export const userSocketMap = {};
 
-//Socket.io connection handling
+//Middleware setup
+app.use(express.json({ limit: "4mb" }));
+app.use(cors());
+
+//Socket.io connection
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
-  console.log("New client connected with ID:", userId);
+  console.log("User Connected", userId);
 
   if (userId) {
     userSocketMap[userId] = socket.id;
+    // Broadcast updated online users list to all clients
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   }
 
-  //emit online users to all connected clients
-  io.emit("online-users", Object.keys(userSocketMap));
-
   socket.on("disconnect", () => {
-    console.log("Client disconnected with ID:", userId);
+    console.log("User Disconnected", userId);
     if (userId) {
       delete userSocketMap[userId];
+      // Broadcast updated online users list to all clients
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
     }
-    io.emit("online-users", Object.keys(userSocketMap));
   });
 });
 
-// Middleware setup
-app.use(cors());
-app.use(express.json({ limit: "4mb" }));
-
-//Route setup
+//Routes setup
 app.use("/api/status", (req, res) => {
-  res.send("Server is running");
+  res.send("Server is live");
 });
-app.use("/api/auth", UserRouter);
-app.use("/api/messages", MessageRouter);
+app.use("/api/auth", userRouter);
+app.use("/api/messages", messageRouter);
 
 await connectDB();
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+
+// If Railway or local environment, start listening
+if (
+  process.env.DEPLOYMENT_PLATFORM === "railway" ||
+  process.env.NODE_ENV !== "production"
+) {
+  server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+}
+
+//Export server for vercel
+export default server;

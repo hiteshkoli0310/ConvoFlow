@@ -1,97 +1,93 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import assets from '../assets/assets'
+import React, { useContext, useState } from "react";
+import assets from "../assets/assets";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const ProfilePage = () => {
-  const [selectedImg, setSelectedImg] = useState(null)
-  const navigate = useNavigate()
-  const [name, setName] = useState("Martin Johnson")
-  const [bio, setBio] = useState(
-    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod."
-  )
-
+  const { authUser, updateProfile } = useContext(AuthContext);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const navigate = useNavigate();
+  const [name, setName] = useState(authUser.fullName);
+  const [bio, setBio] = useState(authUser.bio);
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    navigate('/')
-  }
+    e.preventDefault();
+    if (!selectedImage) {
+      await updateProfile({ fullName: name, bio });
+      navigate("/");
+      return;
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedImage);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      await updateProfile({ profilePic: base64Image, fullName: name, bio });
+      navigate("/");
+    };
+  };
 
   return (
-    <div className="min-h-screen bg-[#0D1F1B] flex items-center justify-center px-6 py-10">
-      <div className="flex flex-col md:flex-row items-center gap-10 bg-[#112821]/90 p-10 rounded-2xl shadow-lg w-full max-w-3xl">
-        {/* Form Section */}
+    <div className="min-h-screen bg-cover bg-no-repeat flex items-center justify-center">
+      <div className="w-5/6 max-w-2xl backdrop-blur-2xl text-gray-300 border-2 border-gray-600 flex items-center justify-between max-sm:flex-col-reverse rounded-lg">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-6 flex-1 text-white w-full"
+          className="flex flex-col gap-5 p-10 flex-1"
         >
-          <h3 className="text-2xl font-semibold text-emerald-400">
-            Profile Details
-          </h3>
-
-          {/* Avatar Upload */}
+          <h3 className="text-lg ">Profile Details</h3>
           <label
             htmlFor="avatar"
-            className="flex items-center gap-4 cursor-pointer text-gray-300 hover:text-emerald-400"
+            className="flex items-center gap-3 cursor-pointer"
           >
             <input
-              onChange={(e) => setSelectedImg(e.target.files[0])}
+              onChange={(e) => setSelectedImage(e.target.files[0])}
               type="file"
               id="avatar"
-              accept=".png, .jpg, .jpeg"
+              accept=".png, .jpg, .jpeg .webp"
               hidden
             />
             <img
               src={
-                selectedImg
-                  ? URL.createObjectURL(selectedImg)
-                  : assets.avatar_icon
+                selectedImage
+                  ? URL.createObjectURL(selectedImage)
+                  : authUser.profilePic || assets.avatar_icon
               }
-              alt="avatar"
-              className={`w-14 h-14 object-cover ${
-                selectedImg ? 'rounded-full' : ''
-              }`}
+              alt=""
+              className={`w-12 h-12 ${selectedImage && "rounded-full"}`}
             />
-            <span className="text-sm">Upload Profile Picture</span>
+            Upload Profile Picture
           </label>
-
-          {/* Name */}
           <input
-            type="text"
             onChange={(e) => setName(e.target.value)}
             value={name}
-            className="p-3 border border-green-700 rounded-md bg-transparent text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="Your name"
+            type="text"
             required
+            placeholder="Your cool username"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
-
-          {/* Bio */}
           <textarea
             onChange={(e) => setBio(e.target.value)}
             value={bio}
-            placeholder="Write profile bio"
-            className="p-3 border border-green-700 rounded-md bg-transparent text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+            placeholder="Write profile Bio..."
+            required
             rows={4}
           ></textarea>
-
-          {/* Button */}
           <button
+            className="bg-gradient-to-r from-purple-400 to-violet-600 text-white p-2 rounded-full text-lg cursor-pointer"
             type="submit"
-            className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-600 text-white py-3 rounded-full text-lg font-medium transition"
           >
             Save
           </button>
         </form>
-
-        {/* Logo Section */}
-        <div className="flex justify-center md:justify-end w-full md:w-auto">
-          <img
-            className="w-36 h-36 rounded-full object-contain"
-            src={assets.logo_icon}
-            alt="logo"
-          />
-        </div>
+        <img
+          className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${
+            selectedImage && "rounded-full"
+          } `}
+          src={assets.logo_icon}
+          alt=""
+        />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProfilePage
+export default ProfilePage;

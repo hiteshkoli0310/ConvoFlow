@@ -1,17 +1,19 @@
 import express from "express";
+import { protectRoute } from "../middleware/auth.js";
 import {
-  getUsersForSidebar,
   getMessages,
+  getUsersForSidebar,
   markMessagesAsSeen,
   sendMessage,
+  deleteMessage,
 } from "../controllers/messageController.js";
-import { protectRoute } from "../middleware/auth.js";
 
-const MessageRouter = express.Router();
+const messageRouter = express.Router();
 
-MessageRouter.get("/users", protectRoute, getUsersForSidebar);
-MessageRouter.get("/:id", protectRoute, getMessages);
-MessageRouter.put("/mark/:id", protectRoute, markMessagesAsSeen);
-MessageRouter.post("/send/:id", protectRoute, sendMessage);
+messageRouter.get("/users", protectRoute, getUsersForSidebar);
+messageRouter.get("/:id", protectRoute, getMessages);
+messageRouter.put("/mark/:id", protectRoute, markMessagesAsSeen);
+messageRouter.post("/send/:id", protectRoute, sendMessage);
+messageRouter.delete("/:id", protectRoute, deleteMessage);
 
-export default MessageRouter;
+export default messageRouter;
