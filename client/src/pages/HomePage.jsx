@@ -8,9 +8,14 @@ const HomePage = () => {
   const { selectedUser } = useContext(ChatContext);
 
   return (
-    <div className="w-full h-screen sm:px-[15%] sm:py-[5%]">
+    <div className="w-full h-screen sm:p-4">
       <div
-        className={`backdrop-blur-xl border-2 border-gray-600 rounded-2xl overflow-hidden h-full grid grid-cols-1 relative
+        className={`
+          backdrop-blur-xl 
+          dark:bg-dark-secondary bg-light-secondary
+          dark:border-dark-border border-light-border border
+          rounded-2xl overflow-hidden h-full grid grid-cols-1 relative
+          transition-all duration-300 ease-in-out
           ${
             selectedUser
               ? "fixed inset-0 sm:static sm:rounded-2xl sm:h-full"
@@ -20,27 +25,34 @@ const HomePage = () => {
             selectedUser
               ? "md:grid-cols-[1fr_1.5fr_1fr] xl:grid-cols-[1fr_2fr_1fr]"
               : "md:grid-cols-2"
-          }`}
+          }
+        `}
       >
-        {/* Left Sidebar - hidden on mobile when chat is open */}
+        {/* Left Sidebar */}
         <div
-          className={`${
-            selectedUser ? "hidden sm:block" : "block"
-          } h-full overflow-hidden border-r border-gray-600`}
+          className={`
+            ${selectedUser ? "hidden sm:block" : "block"}
+            h-full overflow-hidden 
+            dark:border-dark-border border-light-border border-r
+            dark:bg-dark-bg bg-light-bg
+          `}
         >
           <Sidebar />
         </div>
 
-        {/* Chat Container - scroll handled internally */}
-        <div className="h-full overflow-hidden">
+        {/* Chat Container */}
+        <div className="h-full overflow-hidden dark:bg-dark-secondary bg-light-secondary">
           <ChatContainer />
         </div>
 
-        {/* Right Sidebar - hidden on mobile when chat is open */}
+        {/* Right Sidebar */}
         <div
-          className={`${
-            selectedUser ? "hidden sm:block" : "block"
-          } h-full overflow-hidden border-l border-gray-600`}
+          className={`
+            ${selectedUser ? "hidden sm:block" : "block"}
+            h-full overflow-hidden
+            dark:border-dark-border border-light-border border-l
+            dark:bg-dark-bg bg-light-bg
+          `}
         >
           <RightSidebar />
         </div>

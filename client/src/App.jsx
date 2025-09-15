@@ -5,15 +5,28 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
+import ThemeToggle from "./components/ThemeToggle";
 
 const App = () => {
   const { authUser, loading } = useContext(AuthContext);
 
-  if (loading) return <div className="text-center p-10">Loading...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen dark:bg-dark-bg bg-light-bg">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
 
   return (
-    <div className="bg-[url('./src/assets/ConvoFlow_bg.svg')] bg-contain ">
-      <Toaster />
+    <div className="dark:bg-dark-bg bg-light-bg min-h-screen transition-colors duration-300">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          className: 'dark:bg-dark-secondary dark:text-white bg-light-secondary',
+        }}
+      />
       <Routes>
         <Route
           path="/"
@@ -31,4 +44,5 @@ const App = () => {
     </div>
   );
 };
+
 export default App;

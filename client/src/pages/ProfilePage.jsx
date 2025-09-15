@@ -9,6 +9,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState(authUser.fullName);
   const [bio, setBio] = useState(authUser.bio);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedImage) {
@@ -61,12 +62,12 @@ const ProfilePage = () => {
             type="text"
             required
             placeholder="Your cool username"
-            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800"
           />
           <textarea
             onChange={(e) => setBio(e.target.value)}
             value={bio}
-            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800"
             placeholder="Write profile Bio..."
             required
             rows={4}
@@ -82,7 +83,7 @@ const ProfilePage = () => {
           className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${
             selectedImage && "rounded-full"
           } `}
-          src={assets.logo_icon}
+          src={authUser?.profilePic ||assets.logo_icon}
           alt=""
         />
       </div>
