@@ -1,14 +1,13 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import cloudinary from "../lib/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 import { generateToken } from "../lib/utils.js";
 
-//Signup a new user
+// Signup Controller
 export const signup = async (req, res) => {
   const { fullName, email, password, bio } = req.body;
   try {
-    // Check if user already exists
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -16,16 +15,15 @@ export const signup = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
-    if (user) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: "User already exists",
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       fullName,
       email,
@@ -34,9 +32,7 @@ export const signup = async (req, res) => {
     });
 
     const token = generateToken(newUser._id);
-
-    // Remove password from response
-    const userResponse = { ...newUser.toObject() };
+    const userResponse = newUser.toObject();
     delete userResponse.password;
 
     res.status(201).json({
@@ -46,19 +42,18 @@ export const signup = async (req, res) => {
       message: "User created successfully",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error("Signup error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 };
 
-//Controller to login a user
+// Login Controller
 export const login = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
-
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -66,28 +61,16 @@ export const login = async (req, res) => {
       });
     }
 
-    const userData = await User.findOne({ email });
-
-    // Check if user exists
-    if (!userData) {
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, userData.password);
-    if (!isPasswordCorrect) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    const token = generateToken(userData._id);
-
-    // Remove password from response
-    const userResponse = { ...userData.toObject() };
+    const token = generateToken(user._id);
+    const userResponse = user.toObject();
     delete userResponse.password;
 
     res.status(200).json({
@@ -97,15 +80,15 @@ export const login = async (req, res) => {
       message: "Login successful",
     });
   } catch (error) {
-    console.log(error.message);
+    console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 };
 
-//Controller to check if user is authenticated
+// Check Auth Controller
 export const checkAuth = (req, res) => {
   res.status(200).json({
     success: true,
@@ -113,13 +96,12 @@ export const checkAuth = (req, res) => {
   });
 };
 
-//Controller to update user profile
+// Update Profile Controller
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic, bio, fullName } = req.body;
     const userId = req.user._id;
 
-    // Validate required fields
     if (!fullName || fullName.trim() === "") {
       return res.status(400).json({
         success: false,
@@ -127,23 +109,20 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    let updateData = {
-      bio: bio || "",
+    const updateData = {
       fullName: fullName.trim(),
+      bio: bio || "",
     };
 
-    // Handle profile picture upload
     if (profilePic) {
       try {
-        const uploadResponse = await cloudinary.uploader.upload(profilePic, {
-          folder: "chat-app/profiles", // Optional: organize uploads
-          transformation: [
-            { width: 400, height: 400, crop: "fill" }, // Optional: resize images
-          ],
+        const uploadResult = await cloudinary.uploader.upload(profilePic, {
+          folder: "chat-app/profiles",
+          transformation: [{ width: 400, height: 400, crop: "fill" }],
         });
-        updateData.profilePic = uploadResponse.secure_url;
+        updateData.profilePic = uploadResult.secure_url;
       } catch (uploadError) {
-        console.log("Cloudinary upload error:", uploadError);
+        console.error("Cloudinary upload error:", uploadError);
         return res.status(400).json({
           success: false,
           message: "Failed to upload profile picture",
@@ -151,11 +130,10 @@ export const updateProfile = async (req, res) => {
       }
     }
 
-    // Update user in database
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
-      runValidators: true, // Run mongoose validations
-    }).select("-password"); // Exclude password from response
+      runValidators: true,
+    }).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({
@@ -164,14 +142,13 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Return success response
     res.status(200).json({
       success: true,
       user: updatedUser,
       message: "Profile updated successfully",
     });
   } catch (error) {
-    console.log("Update profile error:", error.message);
+    console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

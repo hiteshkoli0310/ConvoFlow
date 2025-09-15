@@ -17,7 +17,7 @@ export const ChatProvider = ({ children }) => {
   const [unseenMessages, setUnseenMessages] = useState({});
   const [messageCache, setMessageCache] = useState({});
   const { socket, axios, authUser } = useContext(AuthContext);
-
+  
   const getMessages = useCallback(
     async (userId) => {
       try {
