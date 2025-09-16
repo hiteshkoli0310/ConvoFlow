@@ -22,7 +22,7 @@ const ChatContainer = () => {
     deleteMessage,
   } = useContext(ChatContext);
   const { authUser, onlineUsers } = useContext(AuthContext);
-
+  
   const scrollEnd = useRef();
   const messagesContainerRef = useRef();
   const [input, setInput] = useState("");
@@ -30,8 +30,6 @@ const ChatContainer = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState(null);
   const [showDropdown, setShowDropdown] = useState(null);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [mobileMenuMsg, setMobileMenuMsg] = useState(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const scrollToBottom = useCallback(() => {
@@ -46,7 +44,6 @@ const ChatContainer = () => {
   const handleScroll = useCallback(() => {
     if (messagesContainerRef.current) {
       const { scrollTop } = messagesContainerRef.current;
-      // Show scroll button if scrolled down more than 100px
       setShowScrollButton(scrollTop > 100);
     }
   }, []);
@@ -54,6 +51,7 @@ const ChatContainer = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return;
+    
     await sendMessage({ text: input.trim() });
     setInput("");
     scrollToBottom();
@@ -87,22 +85,6 @@ const ChatContainer = () => {
     }
   };
 
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-    setMessageToDelete(null);
-  };
-
-  let longPressTimer = null;
-  const handleTouchStart = (msg) => {
-    longPressTimer = setTimeout(() => {
-      setMobileMenuMsg(msg);
-      setShowMobileMenu(true);
-    }, 500);
-  };
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimer);
-  };
-
   useEffect(() => {
     if (selectedUser) {
       setIsLoading(true);
@@ -115,286 +97,233 @@ const ChatContainer = () => {
     }
   }, [selectedUser, getMessages, scrollToBottom]);
 
-  // Scroll when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
   if (isLoading && messages.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-900/50">
-        <div className="animate-pulse text-gray-400">Loading messages...</div>
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent-primary)' }}></div>
+          <p style={{ color: 'var(--text-muted)' }}>Loading messages...</p>
+        </div>
       </div>
     );
   }
 
-  return selectedUser ? (
-    <div className="h-full flex flex-col bg-gray-900/50">
-      {/* Header - Fixed position */}
-      <div className="flex items-center gap-3 py-3 px-4 border-b border-stone-500 bg-gray-900/80">
-        <img
-          src={selectedUser.profilePic || assets.avatar_icon}
-          alt=""
-          className="w-8 rounded-full"
-        />
-        <p className="flex-1 text-lg text-white flex items-center gap-2">
-          {selectedUser.fullName}
-          {onlineUsers.includes(selectedUser._id) && (
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-          )}
-        </p>
-        <img
-          onClick={() => setSelectedUser(null)}
-          src={assets.arrow_icon}
-          alt=""
-          className="md:hidden max-w-7 cursor-pointer"
-        />
-        <img
-          src={assets.help_icon}
-          alt=""
-          className="hidden md:block max-w-5"
-        />
+  return (
+    <div className="flex flex-col h-full" style={{ background: 'var(--bg-primary)' }}>
+      {/* Chat Header */}
+      <div className="p-4 border-b glass-morphism-subtle">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Back Button (Mobile) */}
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-all duration-200"
+            >
+              <svg className="w-5 h-5" style={{ color: 'var(--text-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+
+            {/* User Info */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  className="w-10 h-10 rounded-full object-cover"
+                  src={selectedUser.profilePic || assets.avatar_icon}
+                  alt=""
+                />
+                {onlineUsers.includes(selectedUser._id) && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2" style={{ borderColor: 'var(--bg-primary)' }}></div>
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {selectedUser.fullName}
+                </h3>
+                <p className="text-sm opacity-70" style={{ color: 'var(--text-muted)' }}>
+                  {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+                </p>
+              </div>
+            </div>
+          </div>
+        
+        </div>
       </div>
 
-      {/* Messages - Scrollable area */}
+      {/* Messages Area */}
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col-reverse relative"
+        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
+        style={{ display: "flex", flexDirection: "column-reverse" }}
       >
         {messages.map((msg, index) => {
-          const isSender = msg.sender === authUser._id;
-          const isDeleted = msg.deleted;
+          const isSender = msg.senderId === authUser._id;
+          const isDeleted = msg.text === "This message was deleted";
+
           return (
             <div
-              key={msg._id || index}
-              className={`flex items-end gap-2 ${
-                isSender ? "justify-end" : "justify-start"
-              } group relative`}
-              onTouchStart={
-                isSender && !isDeleted ? () => handleTouchStart(msg) : undefined
-              }
-              onTouchEnd={isSender && !isDeleted ? handleTouchEnd : undefined}
+              key={index}
+              className={`flex ${isSender ? "justify-end" : "justify-start"}`}
             >
-              {/* Message bubble or deleted placeholder */}
-              {isDeleted ? (
-                <div className="flex flex-col items-end w-full">
-                  <div className="italic text-xs text-gray-400 bg-gray-800/70 rounded px-3 py-2 select-none">
-                    This message was deleted
-                  </div>
-                </div>
-              ) : msg.image ? (
-                <div className="flex flex-col items-end relative group">
+              <div
+                className={`relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                  isSender
+                    ? `text-white rounded-br-none`
+                    : `rounded-bl-none glass-morphism`
+                } ${isDeleted ? "opacity-60 italic" : ""}`}
+                style={{
+                  background: isSender 
+                    ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
+                    : 'var(--bg-secondary)',
+                  color: isSender ? '#ffffff' : 'var(--text-primary)'
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  if (!isDeleted && isSender) {
+                    setShowDropdown(showDropdown === msg._id ? null : msg._id);
+                  }
+                }}
+              >
+                {msg.image ? (
                   <img
+                    className="w-full rounded-lg mb-2"
                     src={msg.image}
                     alt=""
-                    className="max-w-[230px] border border-gray-700 rounded-lg overflow-hidden"
                   />
+                ) : (
+                  <p className="break-words">{msg.text}</p>
+                )}
+
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs opacity-70">
+                    {formatMessageTime(msg.createdAt)}
+                  </span>
                   {isSender && (
-                    <span className="text-[10px] text-gray-400 mt-1">
-                      {msg.seen ? "Seen" : ""}
+                    <span className="text-xs opacity-70">
+                      {msg.seen ? "Seen" : "Sent"}
                     </span>
                   )}
-                  {isSender && !isDeleted && (
-                    <button
-                      className="absolute top-1 right-1 p-1 text-gray-400 hover:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() =>
-                        setShowDropdown(
-                          msg._id === showDropdown ? null : msg._id
-                        )
-                      }
-                    >
-                      <FaEllipsisV size={12} />
-                    </button>
-                  )}
-                  {showDropdown === msg._id && (
-                    <div className="absolute top-6 right-0 w-20 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
+                </div>
+
+                {/* Message Options */}
+                {showDropdown === msg._id && (
+                  <div className="absolute top-0 right-0 mt-2 mr-2">
+                    <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
                       <button
-                        className="block w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-gray-700"
                         onClick={() => handleDeleteClick(msg)}
+                        className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
                       >
+                        <FaTrashAlt className="w-3 h-3" />
                         Delete
                       </button>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-end relative group">
-                  <p
-                    className={`p-2 max-w-[200px] md:max-w-[300px] text-sm font-light rounded-lg break-all ${
-                      isSender
-                        ? "bg-violet-600 rounded-br-none text-white"
-                        : "bg-gray-700 rounded-bl-none text-white"
-                    }`}
-                  >
-                    {msg.text}
-                  </p>
-                  {isSender && (
-                    <span className="text-[10px] text-gray-400 mt-1">
-                      {msg.seen ? "Seen" : ""}
-                    </span>
-                  )}
-                  {isSender && !isDeleted && (
-                    <button
-                      className="absolute top-1 right-1 p-1 text-gray-400 hover:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() =>
-                        setShowDropdown(
-                          msg._id === showDropdown ? null : msg._id
-                        )
-                      }
-                    >
-                      <FaEllipsisV size={12} />
-                    </button>
-                  )}
-                  {showDropdown === msg._id && (
-                    <div className="absolute top-6 right-0 w-20 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
-                      <button
-                        className="block w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-gray-700"
-                        onClick={() => handleDeleteClick(msg)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="flex flex-col items-center">
-                <img
-                  src={
-                    isSender
-                      ? authUser?.profilePic || assets.avatar_icon
-                      : selectedUser?.profilePic || assets.avatar_icon
-                  }
-                  alt=""
-                  className="w-7 h-7 rounded-full"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatMessageTime(msg.createdAt)}
-                </p>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
-        <div ref={scrollEnd} />
-
-        {/* Scroll to bottom button */}
-        {showScrollButton && (
-          <button
-            onClick={scrollToBottom}
-            className="fixed bottom-20 right-4 bg-violet-600 hover:bg-violet-700 text-white rounded-full p-2 shadow-lg transition-opacity duration-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
-              />
-            </svg>
-          </button>
-        )}
+        <div ref={scrollEnd}></div>
       </div>
 
-      {/* Input Box - Fixed position */}
-      <div className="p-3 border-t border-gray-600 bg-gray-900/80">
+      {/* Scroll to Bottom Button */}
+      {showScrollButton && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-24 right-8 w-12 h-12 rounded-full glass-morphism-strong shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200"
+        >
+          <svg className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </button>
+      )}
+
+      {/* Message Input */}
+      <div className="p-4 border-t glass-morphism-subtle">
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-          <div className="flex-1 flex items-center bg-gray-700 px-3 rounded-full">
+          {/* Image Upload */}
+          <label className="cursor-pointer p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200">
             <input
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-              type="text"
-              placeholder="Send a message"
-              className="flex-1 text-sm p-3 bg-transparent border-none rounded-lg outline-none text-white placeholder-gray-400"
-            />
-            <input
-              onChange={handleSendImage}
               type="file"
-              id="image"
-              accept="image/png, image/jpeg"
-              hidden
+              accept="image/*"
+              onChange={handleSendImage}
+              className="hidden"
             />
-            <label htmlFor="image" className="cursor-pointer">
-              <img
-                src={assets.gallery_icon}
-                alt="Send image"
-                className="w-5 h-5"
-              />
-            </label>
+            <svg className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </label>
+
+          {/* Text Input */}
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="w-full px-4 py-3 pr-12 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
+              placeholder="Type a message..."
+            />
           </div>
+
+          {/* Send Button */}
           <button
             type="submit"
             disabled={!input.trim()}
-            className={`p-2 rounded-full ${
-              input.trim() ? "bg-violet-600" : "bg-gray-600"
-            }`}
+            className="p-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: input.trim() 
+                ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
+                : 'var(--bg-secondary)'
+            }}
           >
-            <img src={assets.send_button} alt="Send" className="w-5 h-5" />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
           </button>
         </form>
       </div>
 
-      {/* Modal for delete confirmation */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-72 text-center">
-            <div className="mb-4 text-white">Delete this message?</div>
-            <div className="flex justify-center gap-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-morphism-strong rounded-2xl p-6 max-w-sm mx-4 border" style={{ borderColor: 'var(--border-subtle)' }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Delete Message
+            </h3>
+            <p className="mb-6 opacity-80" style={{ color: 'var(--text-muted)' }}>
+              Are you sure you want to delete this message? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
               <button
-                onClick={handleConfirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded"
-              >
-                Delete
-              </button>
-              <button
-                onClick={handleCancelDelete}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-2 rounded-lg border transition-all duration-200 hover:bg-[var(--bg-secondary)]"
+                style={{ 
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-primary)'
+                }}
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200"
+              >
+                Delete
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Mobile menu for long press */}
-      {showMobileMenu && mobileMenuMsg && (
-        <div
-          className="fixed inset-0 z-50 flex items-end md:hidden bg-black/40"
-          onClick={() => setShowMobileMenu(false)}
-        >
-          <div
-            className="w-full bg-gray-800 rounded-t-lg p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="block w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-gray-700"
-              onClick={() => {
-                handleDeleteClick(mobileMenuMsg);
-                setShowMobileMenu(false);
-              }}
-            >
-              Delete
-            </button>
-            <button
-              className="block w-full text-left px-4 py-3 text-sm text-gray-400 hover:bg-gray-700"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  ) : (
-    <div className="hidden md:flex flex-col items-center justify-center gap-2 h-full bg-gray-900/50">
-      <img src={assets.logo_icon} alt="" className="w-16 h-16" />
-      <p className="text-lg font-medium text-white">Chat anytime, anywhere</p>
     </div>
   );
 };
