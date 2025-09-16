@@ -54,67 +54,66 @@ const Sidebar = () => {
           </div>
 
           {/* Profile Menu - Clean Version */}
-<div className="relative">
-  <button
-    onClick={() => setShowDropdown(!showDropdown)}
-    className="p-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200"
-  >
-    <svg className="w-5 h-5" style={{ color: 'var(--text-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-    </svg>
-  </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="p-2 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200"
+              >
+                <svg className="w-5 h-5" style={{ color: 'var(--text-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
 
-  {showDropdown && (
-    <>
-      {/* HIGH OPACITY BACKDROP OVERLAY */}
-      <div 
-        className="fixed inset-0 z-[9998]" 
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-        onClick={() => setShowDropdown(false)}
-      ></div>
-      
-      {/* CLEAN DROPDOWN MENU */}
-      <div 
-        className="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl border-2 z-[9999]" 
-        style={{ 
-          backgroundColor: 'rgba(0, 0, 0, 0.95)',
-          borderColor: '#16db65',
-          backdropFilter: 'blur(20px)'
-        }}
-      >
-        <div className="py-2">
-          <button
-            onClick={() => {
-              navigate("/profile");
-              setShowDropdown(false);
-            }}
-            className="w-full text-left px-4 py-3 rounded-lg hover:bg-green-900 transition-all duration-200 text-sm font-medium flex items-center gap-3"
-          >
-            <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span className="text-green-400 font-medium">Edit Profile</span>
-          </button>
-          
-          <button
-            onClick={() => {
-              logout();
-              setShowDropdown(false);
-            }}
-            className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-900 transition-all duration-200 text-sm font-medium flex items-center gap-3"
-          >
-            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className="text-red-400 font-medium">Logout</span>
-          </button>
-        </div>
-      </div>
-    </>
-  )}
-</div>
-
-        </div>
+              {showDropdown && (
+                <>
+                  {/* HIGH OPACITY BACKDROP OVERLAY */}
+                  <div 
+                    className="fixed inset-0 z-[9998]" 
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+                    onClick={() => setShowDropdown(false)}
+                  ></div>
+                  
+                  {/* CLEAN DROPDOWN MENU */}
+                  <div 
+                    className="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl border-2 z-[9999]" 
+                    style={{ 
+                      backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                      borderColor: '#16db65',
+                      backdropFilter: 'blur(20px)'
+                    }}
+                  >
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          navigate("/profile");
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-green-900 transition-all duration-200 text-sm font-medium flex items-center gap-3"
+                      >
+                        <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="text-green-400 font-medium">Edit Profile</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          logout();
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-900 transition-all duration-200 text-sm font-medium flex items-center gap-3"
+                      >
+                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className="text-red-400 font-medium">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
         {/* Search Bar */}
         <div className="relative">
