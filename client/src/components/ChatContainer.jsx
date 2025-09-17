@@ -162,26 +162,19 @@ const ChatContainer = () => {
         style={{ display: "flex", flexDirection: "column-reverse" }}
       >
         {messages.map((msg, index) => {
-          const isSender = msg.senderId === authUser._id;
+          const isSender = String(msg.sender) === String(authUser._id);
           const isDeleted = msg.text === "This message was deleted";
-
+          
           return (
-            <div
-              key={index}
-              className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+            <div 
+              key={msg._id || index} 
+              className={`message-container ${isSender ? 'sender' : 'receiver'}`}
+              style={{
+                '--animation-delay': `${index * 0.05}s`
+              }}
             >
-              <div
-                className={`relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-                  isSender
-                    ? `text-white rounded-br-none`
-                    : `rounded-bl-none glass-morphism`
-                } ${isDeleted ? "opacity-60 italic" : ""}`}
-                style={{
-                  background: isSender 
-                    ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
-                    : 'var(--bg-secondary)',
-                  color: isSender ? '#ffffff' : 'var(--text-primary)'
-                }}
+              <div 
+                className={`message-bubble ${isSender ? 'sender' : 'receiver'} ${isDeleted ? 'deleted' : ''}`}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   if (!isDeleted && isSender) {
@@ -189,39 +182,41 @@ const ChatContainer = () => {
                   }
                 }}
               >
-                {msg.image ? (
-                  <img
-                    className="w-full rounded-lg mb-2"
-                    src={msg.image}
-                    alt=""
-                  />
-                ) : (
-                  <p className="break-words">{msg.text}</p>
+                {/* Message Content */}
+                {msg.image && (
+                  <div className="message-image">
+                    <img src={msg.image} alt="" />
+                  </div>
                 )}
-
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs opacity-70">
+                
+                {msg.text && (
+                  <div className="message-text">
+                    {msg.text}
+                  </div>
+                )}
+                
+                {/* Message Info */}
+                <div className="message-info">
+                  <span className="message-time">
                     {formatMessageTime(msg.createdAt)}
                   </span>
                   {isSender && (
-                    <span className="text-xs opacity-70">
-                      {msg.seen ? "Seen" : "Sent"}
+                    <span className="message-status">
+                      {msg.seen ? "✓✓" : "✓"}
                     </span>
                   )}
                 </div>
-
+                
                 {/* Message Options */}
                 {showDropdown === msg._id && (
-                  <div className="absolute top-0 right-0 mt-2 mr-2">
-                    <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
-                      <button
-                        onClick={() => handleDeleteClick(msg)}
-                        className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
-                      >
-                        <FaTrashAlt className="w-3 h-3" />
-                        Delete
-                      </button>
-                    </div>
+                  <div className="message-options">
+                    <button 
+                      onClick={() => handleDeleteClick(msg)}
+                      className="delete-btn"
+                    >
+                      <FaTrashAlt />
+                      Delete
+                    </button>
                   </div>
                 )}
               </div>
