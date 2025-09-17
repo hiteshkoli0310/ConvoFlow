@@ -162,7 +162,7 @@ const ChatContainer = () => {
         style={{ display: "flex", flexDirection: "column-reverse" }}
       >
         {messages.map((msg, index) => {
-          const isSender = msg.senderId === authUser._id;
+          const isSender = String(msg.sender) === String(authUser._id);
           const isDeleted = msg.text === "This message was deleted";
 
           return (
