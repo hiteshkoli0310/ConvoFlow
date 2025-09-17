@@ -155,81 +155,92 @@ const ChatContainer = () => {
       </div>
 
       {/* Messages Area */}
-      <div
-        ref={messagesContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
-        style={{ display: "flex", flexDirection: "column-reverse" }}
-      >
-        {messages.map((msg, index) => {
-          const isSender = String(msg.sender) === String(authUser._id);
-          const isDeleted = msg.text === "This message was deleted";
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto scrollbar-thin"
+          style={{ 
+            display: "flex", 
+            flexDirection: "column-reverse", 
+            padding: '16px',
+            paddingBottom: '32px' // Extra bottom padding
+          }}
+        >
+          {messages.map((msg, index) => {
+            const isSender = String(msg.sender) === String(authUser._id);
+            const isDeleted = msg.text === "This message was deleted";
 
-          return (
-            <div
-              key={index}
-              className={`flex ${isSender ? "justify-end" : "justify-start"}`}
-            >
+            return (
               <div
-                className={`relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-                  isSender
-                    ? `text-white rounded-br-none`
-                    : `rounded-bl-none glass-morphism`
-                } ${isDeleted ? "opacity-60 italic" : ""}`}
+                key={msg._id || index} // ✅ Use msg._id instead of index
+                className={`flex ${isSender ? "justify-end" : "justify-start"}`}
                 style={{
-                  background: isSender 
-                    ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
-                    : 'var(--bg-secondary)',
-                  color: isSender ? '#ffffff' : 'var(--text-primary)'
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  if (!isDeleted && isSender) {
-                    setShowDropdown(showDropdown === msg._id ? null : msg._id);
-                  }
+                  marginBottom: '20px', // ✅ Consistent spacing for all messages
+                  width: '100%'
                 }}
               >
-                {msg.image ? (
-                  <img
-                    className="w-full rounded-lg mb-2"
-                    src={msg.image}
-                    alt=""
-                  />
-                ) : (
-                  <p className="break-words">{msg.text}</p>
-                )}
+                <div
+                  className={`relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                    isSender
+                      ? `text-white rounded-br-none`
+                      : `rounded-bl-none glass-morphism`
+                  } ${isDeleted ? "opacity-60 italic" : ""}`}
+                  style={{
+                    background: isSender 
+                      ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
+                      : 'var(--bg-secondary)',
+                    color: isSender ? '#ffffff' : 'var(--text-primary)'
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    if (!isDeleted && isSender) {
+                      setShowDropdown(showDropdown === msg._id ? null : msg._id);
+                    }
+                  }}
+                >
+                  {msg.image ? (
+                    <img
+                      className="w-full rounded-lg mb-2"
+                      src={msg.image}
+                      alt=""
+                    />
+                  ) : (
+                    <p className="break-words">{msg.text}</p>
+                  )}
 
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs opacity-70">
-                    {formatMessageTime(msg.createdAt)}
-                  </span>
-                  {isSender && (
+                  <div className="flex items-center justify-between mt-2">
                     <span className="text-xs opacity-70">
-                      {msg.seen ? "Seen" : "Sent"}
+                      {formatMessageTime(msg.createdAt)}
                     </span>
+                    {isSender && (
+                      <span className="text-xs opacity-70">
+                        {msg.seen ? "Seen" : "Sent"}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Message Options */}
+                  {showDropdown === msg._id && (
+                    <div className="absolute top-0 right-0 mt-2 mr-2 z-50">
+                      <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
+                        <button
+                          onClick={() => handleDeleteClick(msg)}
+                          className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
+                        >
+                          <FaTrashAlt className="w-3 h-3" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-
-                {/* Message Options */}
-                {showDropdown === msg._id && (
-                  <div className="absolute top-0 right-0 mt-2 mr-2">
-                    <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
-                      <button
-                        onClick={() => handleDeleteClick(msg)}
-                        className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
-                      >
-                        <FaTrashAlt className="w-3 h-3" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-          );
-        })}
-        <div ref={scrollEnd}></div>
-      </div>
+            );
+          })}
+          {/* ✅ Move scrollEnd to not interfere with spacing */}
+          <div ref={scrollEnd} style={{ height: '1px', margin: '0' }}></div>
+        </div>
+
 
       {/* Scroll to Bottom Button */}
       {showScrollButton && (
