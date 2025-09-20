@@ -25,6 +25,8 @@ const ChatContainer = () => {
   
   const scrollEnd = useRef();
   const messagesContainerRef = useRef();
+  const dropdownRef = useRef();
+  const modalRef = useRef();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -75,6 +77,7 @@ const ChatContainer = () => {
   const handleDeleteClick = (msg) => {
     setMessageToDelete(msg);
     setShowDeleteModal(true);
+    setShowDropdown(null); // Close the dropdown when opening delete modal
   };
 
   const handleConfirmDelete = async () => {
@@ -82,8 +85,27 @@ const ChatContainer = () => {
       await deleteMessage(messageToDelete._id);
       setShowDeleteModal(false);
       setMessageToDelete(null);
+      setShowDropdown(null); // Ensure dropdown is closed after deletion
     }
   };
+
+  // Handle click outside to close dropdowns and modals
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close dropdown if clicked outside
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(null);
+      }
+      // Close delete modal if clicked outside
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowDeleteModal(false);
+        setMessageToDelete(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (selectedUser) {
@@ -219,12 +241,17 @@ const ChatContainer = () => {
                     )}
                   </div>
 
-                  {/* Message Options */}
-                  {showDropdown === msg._id && (
-                    <div className="absolute top-0 right-0 mt-2 mr-2 z-50">
+                  {/* Message Options - Only show for non-deleted messages */}
+                  {showDropdown === msg._id && !msg.deleted && (
+                    <div 
+                      ref={dropdownRef}
+                      className="absolute top-0 right-0 mt-2 mr-2 z-50">
                       <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
                         <button
-                          onClick={() => handleDeleteClick(msg)}
+                          onClick={() => {
+                            handleDeleteClick(msg);
+                            setShowDropdown(null); // Close the dropdown after clicking delete
+                          }}
                           className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
                         >
                           <FaTrashAlt className="w-3 h-3" />
@@ -307,7 +334,11 @@ const ChatContainer = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-morphism-strong rounded-2xl p-6 max-w-sm mx-4 border" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div 
+            ref={modalRef}
+            className="glass-morphism-strong rounded-2xl p-6 max-w-sm mx-4 border"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
             <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
               Delete Message
             </h3>
@@ -316,7 +347,10 @@ const ChatContainer = () => {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setMessageToDelete(null);
+                }}
                 className="flex-1 px-4 py-2 rounded-lg border transition-all duration-200 hover:bg-[var(--bg-secondary)]"
                 style={{ 
                   borderColor: 'var(--border-subtle)',

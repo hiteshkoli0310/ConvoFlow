@@ -141,23 +141,34 @@ export const sendMessage = async (req, res) => {
 export const deleteMessage = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { id } = req.params;
-    const message = await Message.findById(id);
+    const { messageId } = req.params;
+
+    const message = await Message.findById(messageId);
     if (!message) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Message not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Message not found",
+      });
     }
-    if (String(message.sender) !== String(userId)) {
+
+    // Check if the user is authorized to delete the message
+    if (message.sender.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this message",
       });
     }
+
+    // Soft delete the message
     message.deleted = true;
     message.text = "This message was deleted";
     message.image = "";
     await message.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Message deleted successfully",
+    });
     // Emit update to both sender and receiver
     const senderSocketId = userSocketMap[message.sender];
     const receiverSocketId = userSocketMap[message.receiver];

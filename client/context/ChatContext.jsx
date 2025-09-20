@@ -226,23 +226,12 @@ export const ChatProvider = ({ children }) => {
 
   const deleteMessage = useCallback(
     async (messageId) => {
-      // Optimistically update message in state and cache
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === messageId
-            ? {
-                ...msg,
-                text: "This message was deleted",
-                deleted: true,
-                image: "",
-              }
-            : msg
-        )
-      );
-      setMessageCache((prev) => {
-        const updated = { ...prev };
-        if (selectedUser && updated[selectedUser._id]) {
-          updated[selectedUser._id] = updated[selectedUser._id].map((msg) =>
+      try {
+        const originalMessages = [...messages];
+        
+        // Optimistically update message in state and cache
+        setMessages((prev) =>
+          prev.map((msg) =>
             msg._id === messageId
               ? {
                   ...msg,
@@ -251,19 +240,63 @@ export const ChatProvider = ({ children }) => {
                   image: "",
                 }
               : msg
-          );
-        }
-        return updated;
-      });
-      try {
-        await axios.delete(`/api/messages/${messageId}`);
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message || "Failed to delete message"
+          )
         );
+
+        // Update message cache
+        if (selectedUser) {
+          setMessageCache((prev) => ({
+            ...prev,
+            [selectedUser._id]: messages.map((msg) =>
+              msg._id === messageId
+                ? {
+                    ...msg,
+                    text: "This message was deleted",
+                    deleted: true,
+                    image: "",
+                  }
+                : msg
+            ),
+          }));
+        }
+
+        // Make API call to delete message
+        const res = await axios.delete(`/api/messages/${messageId}`);
+
+        if (!res.data.success) {
+          // Revert the optimistic update if API call fails
+          setMessages(originalMessages);
+          if (selectedUser) {
+            setMessageCache((prev) => ({
+              ...prev,
+              [selectedUser._id]: originalMessages,
+            }));
+          }
+          toast.error(res.data.message || "Failed to delete message");
+        } else {
+          toast.success("Message deleted successfully");
+          // Notify other users about the message deletion via socket
+          if (socket) {
+            socket.emit("messageDeleted", {
+              messageId,
+              receiverId: selectedUser?._id
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        // Revert the optimistic update on error
+        setMessages(originalMessages);
+        if (selectedUser) {
+          setMessageCache((prev) => ({
+            ...prev,
+            [selectedUser._id]: originalMessages,
+          }));
+        }
+        toast.error("Failed to delete message");
       }
     },
-    [axios, selectedUser]
+    [messages, selectedUser, axios, socket]
   );
 
   const value = {
