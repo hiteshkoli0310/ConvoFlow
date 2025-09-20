@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext";
+import InteractiveShowcase from "../components/InteractiveShowcase";
 
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign Up");
@@ -52,61 +53,44 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      {/* Header with Logo */}
-      <header className="relative z-20 px-6 py-6 fade-in-up">
-        <div className="flex items-center gap-4">
-          <img 
-            src={assets.logo_icon} 
-            alt="ConvoFlow" 
-            className="w-12 h-auto rounded-xl pulse-glow" 
-          />
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
-              ConvoFlow
-            </h1>
-            <p className="text-xs opacity-80" style={{ color: 'var(--text-muted)' }}>
-              Connect. Chat. Flow.
-            </p>
-          </div>
+      {/* Split layout: left interactive hero, right auth form */}
+      <div className={`grid grid-cols-1 md:grid-cols-2 min-h-screen`}>
+        {/* Left: Interactive showcase (hidden on small screens) */}
+        <div className="hidden md:block">
+          <InteractiveShowcase />
         </div>
-      </header>
 
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full opacity-5 float-animation"
-             style={{ background: 'var(--accent-primary)' }}></div>
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-10 float-animation"
-             style={{ background: 'var(--accent-primary)', animationDelay: '1s' }}></div>
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full opacity-10 float-animation"
-             style={{ background: 'var(--accent-secondary)', animationDelay: '2s' }}></div>
-        <div className="absolute top-3/4 right-1/4 w-32 h-32 rounded-full opacity-5 float-animation"
-             style={{ background: 'var(--accent-primary)', animationDelay: '0.5s' }}></div>
-      </div>
-
-      {/* Centered Form */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-120px)] px-4 relative z-10">
-        <div className="w-full max-w-md slide-in-up">
-          <div className="glass-morphism-strong rounded-3xl p-8 shadow-2xl">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
-                {currState}
-              </h2>
+        {/* Right: Auth form */}
+  <div className="auth-surface flex items-center justify-center py-10 px-6 md:px-10">
+          <div className="w-full max-w-md glass-card p-6 md:p-7 slide-in-up">
+            {/* Compact branding header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="neon-avatar w-10 h-10 grid place-items-center rounded-xl">
+                  <img src={assets.logo_icon} alt="ConvoFlow" className="w-6 h-6 object-contain" />
+                </div>
+                <h1 className="text-lg font-extrabold neon-text">ConvoFlow</h1>
+              </div>
               {isDataSubmitted && (
                 <button
                   onClick={() => setIsDataSubmitted(false)}
-                  className="p-2 rounded-full hover:bg-[var(--bg-secondary)] transition-all duration-200 ripple"
-                  style={{ color: 'var(--accent-primary)' }}
+                  className="icon-btn ripple"
+                  aria-label="Go back"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
                 </button>
               )}
             </div>
+            {/* Variant toggle removed per request */}
 
-            {/* Form */}
-            <form onSubmit={onSubmitHandler} className="space-y-6">
+            {/* Title */}
+            <h3 className="text-2xl font-extrabold bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent mb-4">
+              {currState}
+            </h3>
+
+            <form onSubmit={onSubmitHandler} className="space-y-5">
               {/* Full Name Input */}
               {currState === "Sign Up" && !isDataSubmitted && (
                 <div className="relative">
@@ -116,26 +100,17 @@ const LoginPage = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput('')}
-                    className="w-full px-4 py-4 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: focusedInput === 'fullName' ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      color: 'var(--text-primary)'
-                    }}
+                    className="retro-input w-full"
                     placeholder="Full Name"
                     required
                   />
-                  {focusedInput === 'fullName' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                         style={{ background: 'var(--accent-primary)' }} />
-                  )}
+                  <span className={`input-sweep ${focusedInput === 'fullName' ? 'active' : ''}`} />
                 </div>
               )}
 
               {/* Email and Password - First Step */}
               {!isDataSubmitted && (
-                <div className="space-y-6">
-                  {/* Email Input */}
+                <div className="space-y-5">
                   <div className="relative">
                     <input
                       type="email"
@@ -143,22 +118,13 @@ const LoginPage = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput('')}
-                      className="w-full px-4 py-4 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        borderColor: focusedInput === 'email' ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
+                      className="retro-input w-full"
                       placeholder="Email Address"
                       required
                     />
-                    {focusedInput === 'email' && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                           style={{ background: 'var(--accent-primary)' }} />
-                    )}
+                    <span className={`input-sweep ${focusedInput === 'email' ? 'active' : ''}`} />
                   </div>
 
-                  {/* Password Input */}
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -166,20 +132,15 @@ const LoginPage = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       onFocus={() => setFocusedInput('password')}
                       onBlur={() => setFocusedInput('')}
-                      className="w-full px-4 py-4 pr-12 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        borderColor: focusedInput === 'password' ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
+                      className="retro-input w-full pr-12"
                       placeholder="Password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[var(--bg-tertiary)] transition-all duration-200"
-                      style={{ color: 'var(--text-muted)' }}
+                      className="icon-btn absolute right-3 top-1/2 -translate-y-1/2"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,10 +153,7 @@ const LoginPage = () => {
                         </svg>
                       )}
                     </button>
-                    {focusedInput === 'password' && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                           style={{ background: 'var(--accent-primary)' }} />
-                    )}
+                    <span className={`input-sweep ${focusedInput === 'password' ? 'active' : ''}`} />
                   </div>
                 </div>
               )}
@@ -209,18 +167,10 @@ const LoginPage = () => {
                     onFocus={() => setFocusedInput('bio')}
                     onBlur={() => setFocusedInput('')}
                     rows={4}
-                    className="w-full px-4 py-4 rounded-xl border-2 input-glow transition-all duration-300 resize-none placeholder:text-[var(--text-muted)]"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: focusedInput === 'bio' ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      color: 'var(--text-primary)'
-                    }}
+                    className="retro-input w-full resize-none"
                     placeholder="Tell us a bit about yourself..."
                   />
-                  {focusedInput === 'bio' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                         style={{ background: 'var(--accent-primary)' }} />
-                  )}
+                  <span className={`input-sweep ${focusedInput === 'bio' ? 'active' : ''}`} />
                 </div>
               )}
 
@@ -228,10 +178,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-xl font-semibold text-white relative overflow-hidden btn-hover-effect ripple transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
-                style={{
-                  background: `linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)`
-                }}
+                className="retro-cta w-full disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -245,70 +192,41 @@ const LoginPage = () => {
                   <span>
                     {currState === "Sign Up" 
                       ? (!isDataSubmitted ? "Continue" : "Create Account") 
-                      : "Sign In"
-                    }
+                      : "Sign In"}
                   </span>
                 )}
               </button>
 
-              {/* Terms Checkbox */}
-              <div className="flex items-start gap-3">
-                <input 
-                  type="checkbox" 
-                  id="terms"
-                  className="mt-1 w-4 h-4 rounded border-2 transition-all duration-200"
-                  style={{ 
-                    borderColor: 'var(--border-subtle)',
-                    accentColor: 'var(--accent-primary)'
-                  }}
-                />
-                <label htmlFor="terms" className="text-sm cursor-pointer" style={{ color: 'var(--text-muted)' }}>
-                  I agree to the{" "}
-                  <span 
-                    className="font-medium cursor-pointer hover:underline transition-all duration-200"
+              {/* Compact footer actions */}
+              <div className="flex items-center justify-between text-sm" style={{ color: 'var(--text-muted)' }}>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="terms"
+                    className="w-4 h-4 rounded border-2"
+                    style={{ borderColor: 'var(--border-subtle)', accentColor: 'var(--accent-primary)' }}
+                  />
+                  <label htmlFor="terms" className="cursor-pointer">I agree</label>
+                </div>
+                {currState === "Sign Up" ? (
+                  <button
+                    type="button"
+                    onClick={() => handleStateChange("Login")}
+                    className="font-medium hover:underline"
                     style={{ color: 'var(--accent-primary)' }}
                   >
-                    Terms of Service
-                  </span>
-                  {" "}and{" "}
-                  <span 
-                    className="font-medium cursor-pointer hover:underline transition-all duration-200"
+                    Sign In
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleStateChange("Sign Up")}
+                    className="font-medium hover:underline"
                     style={{ color: 'var(--accent-primary)' }}
                   >
-                    Privacy Policy
-                  </span>
-                </label>
-              </div>
-
-              {/* Switch Mode */}
-              <div className="text-center">
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  {currState === "Sign Up" ? (
-                    <>
-                      Already have an account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => handleStateChange("Login")}
-                        className="font-medium hover:underline transition-all duration-200 ripple"
-                        style={{ color: 'var(--accent-primary)' }}
-                      >
-                        Sign in here
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      Don't have an account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => handleStateChange("Sign Up")}
-                        className="font-medium hover:underline transition-all duration-200 ripple"
-                        style={{ color: 'var(--accent-primary)' }}
-                      >
-                        Create one here
-                      </button>
-                    </>
-                  )}
-                </p>
+                    Create Account
+                  </button>
+                )}
               </div>
             </form>
           </div>

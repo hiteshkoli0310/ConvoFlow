@@ -6,6 +6,7 @@ import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import ThemeToggle from "./components/ThemeToggle";
+import assets from "./assets/assets";
 
 const App = () => {
   const { authUser, loading } = useContext(AuthContext);
@@ -18,6 +19,13 @@ const App = () => {
 
   return (
     <div className="dark:bg-dark-bg bg-light-bg min-h-screen transition-colors duration-300">
+      {/* Branding - top-left */}
+      <div className="fixed top-4 left-4 z-50 flex items-center gap-3 select-none">
+        <div className="neon-avatar w-10 h-10 grid place-items-center rounded-xl">
+          <img src={assets.logo_icon} alt="ConvoFlow" className="w-6 h-6 object-contain" />
+        </div>
+        <span className="font-extrabold neon-text text-lg">ConvoFlow</span>
+      </div>
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
