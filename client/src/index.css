@@ -1,8 +1,19 @@
+/* ==========================================================
+  ConvoFlow UI Stylesheet (index.css)
+  Purpose: Global design tokens, themes, animations, and reusable UI utilities.
+  How to read:
+  - Design tokens: CSS variables in :root (light) and .dark (dark)
+  - Animations: keyframes + small utility classes
+  - UI utilities: glass cards, retro panel, inputs, buttons, effects
+  - Backgrounds: auth surfaces/stars, interactive hero (globe panel)
+  - Accessibility & reduced-motion handled at bottom
+  ========================================================== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Design Tokens — Light theme defaults (overridden in `.dark`) */
   :root {
     /* Light Theme Colors */
     --bg-primary: theme('colors.malachite.900');
@@ -23,6 +34,7 @@
     --accent-secondary-rgb: 4, 71, 28;
   }
 
+  /* Design Tokens — Dark theme overrides; enable by adding `class="dark"` on html */
   .dark {
     /* Dark Theme Colors */
     --bg-primary: theme('colors.black.DEFAULT');
@@ -173,7 +185,10 @@
 
 /* ===================== */
 /* Glossy Glass Card     */
-/* ===================== */
+/* =====================
+  Usage: Add class `glass-card` to a container (e.g., auth form card).
+  Notes: Works on light/dark; pairs well with .auth-surface, .auth-stars, or .globe-bg.
+  ===================== */
 .glass-card {
   position: relative;
   background: linear-gradient(
@@ -241,7 +256,10 @@
 
 /* ===================== */
 /* Auth surface (light)  */
-/* ===================== */
+/* =====================
+   Usage: Wrap page/right panel with `auth-surface` for a static light mesh bg.
+   Notes: Intended for light mode only (styles scoped to html:not(.dark)).
+   ===================== */
 .auth-surface {
   position: relative;
   overflow: hidden;
@@ -284,7 +302,10 @@ html:not(.dark) .auth-surface::after {
 
 /* ===================== */
 /* Static Stars Background */
-/* ===================== */
+/* =====================
+  Usage: Apply `auth-stars` on a container for a static starfield/vignette.
+  Notes: Works in both themes; keep content above (positioning creates overlay layers).
+  ===================== */
 .auth-stars {
   position: relative;
   overflow: hidden;
@@ -700,8 +721,14 @@ h2.text-3xl {
 }
 
 /* ===================== */
-/* Interactive Hero (Left)*/
-/* ===================== */
+/* Interactive Hero (Globe) */
+/* =====================
+   Usage: This styles the full-bleed panel behind InteractiveShowcase.
+   - Apply `interactive-hero` to the globe wrapper for a subtle radial backdrop.
+   - Optional overlays: `.overlay-grid.pixel-grid` and `.overlay-grid.crt-scanlines`.
+   - For a full-page unified globe background on auth, use `.globe-bg` on the page wrapper
+     and overlay the form card on top (remove split backgrounds).
+   ===================== */
 .interactive-hero {
   position: relative;
   width: 100%;
@@ -736,15 +763,31 @@ h2.text-3xl {
   filter: saturate(1.05);
 }
 
+/* Cursor-follow glow (positioned by InteractiveShowcase) */
 .cursor-glow {
   position: absolute;
   width: 360px;
   height: 360px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(22,219,101,0.18) 0%, rgba(22,219,101,0.10) 30%, transparent 60%);
+  /* Default (dark): white glow for visibility on black */
+  background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.15) 30%, transparent 60%);
   mix-blend-mode: screen;
   transform: translate3d(-50%, -50%, 0);
+}
+
+/* In LIGHT mode: page background white and cursor glow black */
+html:not(.dark) body {
+  background: #ffffff !important;
+}
+html:not(.dark) .cursor-glow {
+  background: radial-gradient(circle, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.15) 30%, transparent 60%);
+  mix-blend-mode: multiply;
+}
+
+/* In DARK mode: keep black background and green glow (already default) */
+html.dark body {
+  background: #000000 !important;
 }
 
 .noise-overlay {
@@ -761,4 +804,11 @@ h2.text-3xl {
   .parallax-layer, .parallax-item, .parallax-tilt { transition: none !important; animation: none !important; transform: none !important; }
   .cursor-glow { display: none; }
 }
+
+/* Full-page background for unified globe panel aesthetic
+  Usage: Apply `globe-bg` to the page wrapper when the InteractiveShowcase spans the full page.
+  Typically used on the login/auth page when the globe is the sole background. */
+/* Globe background adapts to theme */
+.globe-bg { background: #000; }
+html:not(.dark) .globe-bg { background: #fff; }
 

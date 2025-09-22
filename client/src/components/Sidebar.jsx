@@ -43,14 +43,14 @@ const Sidebar = () => {
         <div className="flex items-center justify-between mb-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <img 
+            {/* <img 
               src={assets.logo_icon} 
               alt="ConvoFlow" 
               className="w-10 h-10 rounded-xl" 
             />
             <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
               ConvoFlow
-            </h1>
+            </h1> */}
           </div>
 
           {/* Profile Menu - Clean Version */}
