@@ -188,9 +188,10 @@ const InteractiveShowcase = ({ asBackground = false, globeAlign = 'center' }) =>
     }
 
     // Rotation state (degrees)
-    let lon = 0;                 // rotation around Y (λ)
-    let latBase = -10;           // base tilt (φ)
-    let latHover = 0;            // mouse-induced tilt
+  let lon = 0;                 // rotation around Y (λ)
+  let latBase = -10;           // base tilt (φ)
+  let latHover = 0;            // mouse-induced tilt (vertical)
+  let lonHover = 0;            // mouse-induced yaw (horizontal)
     const spin = reduceMotion ? 0.006 : 0.02; // degrees per ms
 
     function resize() {
@@ -230,6 +231,8 @@ const InteractiveShowcase = ({ asBackground = false, globeAlign = 'center' }) =>
       cursor.y = (e.clientY - r.top) / r.height * 2 - 1;
       // tilt latitude up to ±18°
       latHover = (cursor.y || 0) * 18;
+      // steer longitude (yaw) up to ±35°
+      lonHover = (cursor.x || 0) * 35;
       if (cursorGlowRef.current) {
         const gx = (e.clientX - r.left);
         const gy = (e.clientY - r.top);
@@ -292,10 +295,12 @@ const InteractiveShowcase = ({ asBackground = false, globeAlign = 'center' }) =>
     const BORDERS = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
 
     function frame(now) {
-      const dt = Math.min(32, now - last); last = now;
-      lon = (lon + spin * dt) % 360;
-      const lat = latBase + (cursor.inside ? latHover : 0);
-      projection.rotate([lon, -lat, 0]);
+  const dt = Math.min(32, now - last); last = now;
+  lon = (lon + spin * dt) % 360;
+  const lat = latBase + (cursor.inside ? latHover : 0);
+  const lonView = lon + (cursor.inside ? lonHover : 0);
+  const latView = lat;
+  projection.rotate([lonView, -latView, 0]);
 
       // clear
       ctx.fillStyle = BG;
@@ -353,7 +358,7 @@ const InteractiveShowcase = ({ asBackground = false, globeAlign = 'center' }) =>
           const t = i / steps;
           const [λ, φ] = interp(t);
           // clip to front hemisphere using current center
-          const visible = isFront(λ, φ, -lon, lat);
+          const visible = isFront(λ, φ, -lonView, latView);
           if (!visible) {
             if (open) { ctx.stroke(); ctx.beginPath(); open = false; }
             continue;
@@ -373,8 +378,8 @@ const InteractiveShowcase = ({ asBackground = false, globeAlign = 'center' }) =>
         if (open) ctx.stroke();
 
         // Origin pulsing ring
-        const originVisible = isFront(arc.startLng, arc.startLat, -lon, lat);
-        const destVisible = isFront(arc.endLng, arc.endLat, -lon, lat);
+  const originVisible = isFront(arc.startLng, arc.startLat, -lonView, latView);
+  const destVisible = isFront(arc.endLng, arc.endLat, -lonView, latView);
         const p0 = projection([arc.startLng, arc.startLat]);
         const p1 = projection([arc.endLng, arc.endLat]);
         const baseR = Math.max(4, Math.min(width, height) * 0.012);
