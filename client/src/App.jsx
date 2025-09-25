@@ -1,15 +1,17 @@
 import React, { useContext } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import ThemeToggle from "./components/ThemeToggle";
+import AccountBadge from "./components/AccountBadge";
 import assets from "./assets/assets";
 
 const App = () => {
   const { authUser, loading } = useContext(AuthContext);
+  const location = useLocation();
 
   if (loading) return (
     <div className="flex items-center justify-center h-screen dark:bg-dark-bg bg-light-bg">
@@ -31,6 +33,7 @@ const App = () => {
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
+  {authUser && location.pathname !== '/profile' && <AccountBadge />}
       <Toaster
         position="top-center"
         toastOptions={{

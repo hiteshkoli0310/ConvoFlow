@@ -812,3 +812,87 @@ html.dark body {
 .globe-bg { background: #000; }
 html:not(.dark) .globe-bg { background: #fff; }
 
+
+/* ===================== */
+/* HomePage Mesh + Glass */
+/* =====================
+   Usage: These classes power the Home page's refined background and glass aesthetic
+   that complements the animated globe. Keep effects subtle for readability.
+   - .home-mesh-bg: layered mesh gradients + soft vignette (theme-aware)
+   - .home-glass-plate: frosted glass plate across the scene (behind content)
+   - .home-noise: fine-grain film for texture, theme-aware blend
+   ===================== */
+
+/* Base layer container */
+.home-mesh-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--bg-primary);
+}
+
+/* Dark theme: subtle emerald mesh with inner vignette */
+html.dark .home-mesh-bg {
+  background:
+    radial-gradient(1200px 900px at 85% 20%, rgba(22, 219, 101, 0.06), transparent 60%),
+    radial-gradient(1000px 800px at 20% 85%, rgba(5, 140, 66, 0.05), transparent 60%),
+    radial-gradient(800px 600px at 50% 50%, rgba(255, 255, 255, 0.02), transparent 65%),
+    var(--bg-primary);
+  box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.65);
+}
+
+/* Light theme: brighter mesh with soft outer vignette on white */
+html:not(.dark) .home-mesh-bg {
+  background:
+    radial-gradient(1100px 800px at 0% 15%, rgba(5, 140, 66, 0.08), transparent 55%),
+    radial-gradient(1000px 700px at 100% 0%, rgba(186, 233, 204, 0.22), transparent 55%),
+    radial-gradient(900px 700px at 30% 105%, rgba(5, 140, 66, 0.08), transparent 60%),
+    #ffffff;
+  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.08);
+}
+
+/* Frosted glass plate (sits behind main content, large rounded rect) */
+.home-glass-plate {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.02));
+  border: 1px solid rgba(var(--accent-primary-rgb), 0.18);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 0 60px rgba(var(--accent-primary-rgb), 0.06);
+}
+
+/* Slightly brighter, smoother glass in light theme */
+html:not(.dark) .home-glass-plate {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.35));
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(5, 140, 66, 0.08);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  opacity: 0.45; /* keep airy to avoid washing content */
+}
+
+/* Fine film grain for analog warmth */
+.home-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: 0.05;
+}
+
+html:not(.dark) .home-noise {
+  mix-blend-mode: multiply;
+  opacity: 0.06;
+}
+
+html.dark .home-noise {
+  mix-blend-mode: screen;
+  opacity: 0.04;
+}
+

@@ -317,11 +317,17 @@ const ChatContainer = () => {
           <button
             type="submit"
             disabled={!input.trim()}
-            className="p-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`p-3 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
+              input.trim()
+                ? 'text-white hover:scale-105 active:scale-95'
+                : ''
+            }`}
             style={{
-              background: input.trim() 
-                ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))` 
-                : 'var(--bg-secondary)'
+              background: input.trim()
+                ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))`
+                : 'rgba(var(--accent-primary-rgb), 0.15)',
+              border: input.trim() ? 'none' : '1px solid rgba(var(--accent-primary-rgb), 0.35)',
+              color: input.trim() ? '#ffffff' : 'rgb(5, 140, 66)'
             }}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

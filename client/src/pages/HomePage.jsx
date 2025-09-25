@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import ChatContainer from "../components/ChatContainer";
 import RightSidebar from "../components/RightSidebar";
 import ThemeToggle from "../components/ThemeToggle";
+import InteractiveShowcase from "../components/InteractiveShowcase";
 import { ChatContext } from "../../context/ChatContext";
 
 const HomePage = () => {
@@ -10,17 +11,17 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-5 float-animation"
-             style={{ background: 'var(--accent-primary)' }}></div>
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full opacity-5 float-animation"
-             style={{ background: 'var(--accent-secondary)', animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full opacity-3 float-animation"
-             style={{ background: 'var(--accent-primary)', animationDelay: '2s' }}></div>
-      </div>
+      {/* Themed mesh background */}
+      <div className="absolute inset-0 home-mesh-bg" />
 
-      
+      {/* Background Globe echoing signup vibe, aligned right for contrast */}
+      <InteractiveShowcase asBackground globeAlign="right" />
+
+      {/* Subtle overlays: frosted glass plate + soft noise for glassmorphism */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-4 md:inset-6 rounded-3xl home-glass-plate" />
+        <div className="absolute inset-0 home-noise" />
+      </div>
 
       {/* Main Chat Interface with Visual Separation */}
       <div className="flex h-screen relative z-10 component-separator">
@@ -36,7 +37,7 @@ const HomePage = () => {
         <div className="flex-1 flex chat-panel">
           {/* Chat Container */}
           <div className={`flex-1 ${selectedUser ? 'block' : 'flex items-center justify-center'}`} 
-               style={{ background: 'var(--bg-primary)' }}>
+               style={{ background: 'transparent' }}>
             {selectedUser ? (
               <ChatContainer />
             ) : (
