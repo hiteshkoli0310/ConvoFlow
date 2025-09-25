@@ -2,10 +2,10 @@ import React, { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
-// Small bottom-left account chip showing avatar + name
-// - Click opens Profile page
-// - Theme-aware, glassy, non-intrusive
-const AccountBadge = () => {
+// Small account chip showing avatar + name
+// - overlay mode (default): fixed on the viewport for mobile
+// - inline mode: anchored inside parent (e.g., Sidebar footer on desktop)
+const AccountBadge = ({ mode = "overlay" }) => {
   const navigate = useNavigate();
   const { authUser, logout } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
@@ -33,9 +33,11 @@ const AccountBadge = () => {
 
   const { fullName, profilePic } = authUser || {};
 
+  const isInline = mode === "inline";
+
   return (
     <div
-      className="fixed left-4 bottom-4 z-50"
+      className={isInline ? "relative z-10" : "fixed left-4 top-4 sm:top-auto sm:bottom-4 z-50"}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
@@ -92,7 +94,11 @@ const AccountBadge = () => {
 
       {open && (
         <div
-          className="absolute bottom-full left-0 mb-2 w-48 rounded-xl shadow-2xl border-2 bg-white/95 dark:bg-[rgba(0,0,0,0.95)]"
+          className={
+            isInline
+              ? "absolute bottom-full left-0 mb-2 w-48 rounded-xl shadow-2xl border-2 bg-white/95 dark:bg-[rgba(0,0,0,0.95)]"
+              : "absolute left-0 top-full sm:top-auto sm:bottom-full mt-2 sm:mt-0 sm:mb-2 w-48 rounded-xl shadow-2xl border-2 bg-white/95 dark:bg-[rgba(0,0,0,0.95)]"
+          }
           style={{
             borderColor: "#16db65",
             backdropFilter: "blur(20px)",

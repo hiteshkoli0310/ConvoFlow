@@ -30,10 +30,15 @@ const App = () => {
           <span className="font-extrabold neon-text text-lg">ConvoFlow</span>
         </div>
       )}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Theme toggle: fixed on md+; on mobile it's inside Sidebar header next to branding */}
+      <div className="hidden md:block fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
-  {authUser && location.pathname !== '/profile' && <AccountBadge />}
+  {authUser && location.pathname !== '/profile' && (
+        <div className="hidden sm:block">
+          <AccountBadge />
+        </div>
+      )}
       <Toaster
         position="top-center"
         toastOptions={{

@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 
+import ThemeToggle from "./ThemeToggle";
+import AccountMenuInline from "./AccountMenuInline";
+
 const Sidebar = () => {
   const {
     getUsers,
@@ -37,7 +40,7 @@ const Sidebar = () => {
   }, [onlineUsers]);
 
   return (
-    <div className="h-full flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+    <div className="min-h-screen md:h-full flex flex-col" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
       <div className="p-6 border-b glass-morphism-subtle">
         <div className="flex items-center justify-between mb-6">
@@ -48,6 +51,11 @@ const Sidebar = () => {
             <span className="font-extrabold neon-text text-base">ConvoFlow</span>
           </div>
 
+          {/* Right side (mobile only): account menu then theme toggle */}
+          <div className="md:hidden ml-3 flex items-center gap-2 shrink-0">
+            <AccountMenuInline />
+            <ThemeToggle />
+          </div>
           {/* 3-dot menu removed; AccountBadge now hosts profile/logout actions */}
         </div>
 

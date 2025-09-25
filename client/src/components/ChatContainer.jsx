@@ -11,6 +11,7 @@ import { formatMessageTime } from "../../lib/utils";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import { FaTrashAlt, FaEllipsisV } from "react-icons/fa";
+import RightSidebar from "./RightSidebar";
 
 const ChatContainer = () => {
   const {
@@ -33,6 +34,7 @@ const ChatContainer = () => {
   const [messageToDelete, setMessageToDelete] = useState(null);
   const [showDropdown, setShowDropdown] = useState(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
@@ -151,7 +153,11 @@ const ChatContainer = () => {
             </button>
 
             {/* User Info */}
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 md:cursor-default cursor-pointer"
+              onClick={() => setShowDetails(true)}
+              title="View details"
+            >
               <div className="relative">
                 <img
                   className="w-10 h-10 rounded-full object-cover"
@@ -336,6 +342,35 @@ const ChatContainer = () => {
           </button>
         </form>
       </div>
+
+      {/* Mobile slide-over: RightSidebar details */}
+      {showDetails && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Scrim */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowDetails(false)}
+          />
+          {/* Panel */}
+          <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm glass-morphism-strong border-l"
+               style={{ borderColor: 'var(--border-subtle)' }}>
+            {/* Close */}
+            <div className="p-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+              <button
+                className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                onClick={() => setShowDetails(false)}
+              >
+                <svg className="w-5 h-5" style={{ color: 'var(--text-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="h-[calc(100%-52px)]">
+              <RightSidebar />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

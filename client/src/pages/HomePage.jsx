@@ -19,12 +19,14 @@ const HomePage = () => {
 
       {/* Subtle overlays: frosted glass plate + soft noise for glassmorphism */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-4 md:inset-6 rounded-3xl home-glass-plate" />
+        {/* Only show large glass plate on medium screens and up */}
+        <div className="hidden md:block absolute inset-4 md:inset-6 rounded-3xl home-glass-plate" />
         <div className="absolute inset-0 home-noise" />
       </div>
 
       {/* Main Chat Interface with Visual Separation */}
-      <div className="flex h-screen relative z-10 component-separator">
+      {/* Desktop/Tablet layout */}
+      <div className="hidden md:flex h-screen relative z-10 component-separator">
         {/* Left Sidebar - User List */}
         <div className="w-80 sidebar-panel">
           <Sidebar />
@@ -60,18 +62,31 @@ const HomePage = () => {
             )}
           </div>
 
-          {/* Right Sidebar - User Info */}
+          {/* Right Sidebar - User Info (desktop only) */}
           {selectedUser && (
             <>
               {/* Separator Line */}
               <div className="w-px bg-gradient-to-b from-transparent via-[var(--accent-primary)] to-transparent opacity-30"></div>
               
-              <div className="w-80 right-sidebar-panel">
+              <div className="w-80 right-sidebar-panel hidden lg:block">
                 <RightSidebar />
               </div>
             </>
           )}
         </div>
+      </div>
+
+      {/* Mobile layout */}
+      <div className="md:hidden relative z-10 min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+        {selectedUser ? (
+          <div className="min-h-screen">
+            <ChatContainer />
+          </div>
+        ) : (
+          <div className="min-h-screen">
+            <Sidebar />
+          </div>
+        )}
       </div>
     </div>
   );

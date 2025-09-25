@@ -54,14 +54,10 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      {/* Themed mesh + globe background echoing signup aesthetics */}
+      {/* Themed mesh + globe background */}
       <div className="absolute inset-0 home-mesh-bg" />
       <InteractiveShowcase asBackground globeAlign="left" />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ backdropFilter: 'blur(10px) saturate(1.1)', WebkitBackdropFilter: 'blur(10px) saturate(1.1)' }}
-      >
-        {/* Subtle texture only; no page-encapsulating plate */}
+      <div className="absolute inset-0 pointer-events-none" style={{ backdropFilter: 'blur(10px) saturate(1.1)', WebkitBackdropFilter: 'blur(10px) saturate(1.1)' }}>
         <div className="absolute inset-0 home-noise" />
       </div>
 
@@ -79,31 +75,30 @@ const ProfilePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            
+
             {/* ConvoFlow Logo */}
-            <div className="flex items-center gap-3">
-              <img 
-                src={assets.logo_icon} 
-                alt="ConvoFlow" 
-                className="w-10 h-10 rounded-xl" 
-              />
+            <div className="flex items-center gap-3 select-none">
+              <img src={assets.logo_icon} alt="ConvoFlow" className="w-10 h-10 rounded-xl" />
               <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
                 ConvoFlow
               </h1>
             </div>
           </div>
 
+          {/* Theme toggle (mobile only to avoid desktop duplicate) */}
+          <div className="md:hidden">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-120px)] px-4 relative z-10">
+      <div className="flex items-center justify-center px-4 pb-10 relative z-10">
         <div className="w-full max-w-5xl slide-in-up">
           <div className="rounded-3xl shadow-2xl overflow-hidden" style={{ border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', backdropFilter: 'blur(18px)' }}>
             <div className="grid grid-cols-1 md:grid-cols-[320px,1fr]">
               {/* Left Summary Panel */}
               <aside className="relative p-8 md:p-10 border-b md:border-b-0 md:border-r" style={{ borderColor: 'var(--border-subtle)', background: 'linear-gradient(180deg, rgba(var(--accent-primary-rgb),0.10), transparent)' }}>
-                {/* Cover banner */}
                 <div className="absolute inset-x-0 -top-16 h-40 blur-2xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(600px 200px at 30% 30%, rgba(var(--accent-primary-rgb),0.35), transparent 70%)' }} />
 
                 <div className="relative flex flex-col items-center text-center gap-4">
@@ -114,7 +109,6 @@ const ProfilePage = () => {
                       className="w-28 h-28 rounded-2xl object-cover border-4 shadow-xl"
                       style={{ borderColor: 'rgba(var(--accent-primary-rgb),0.4)' }}
                     />
-                    {/* Upload tappable overlay */}
                     <label className="absolute inset-0 rounded-2xl cursor-pointer grid place-items-center opacity-0 hover:opacity-100 transition-opacity" style={{ background: 'rgba(0,0,0,0.4)' }}>
                       <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
