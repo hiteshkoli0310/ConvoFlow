@@ -35,10 +35,18 @@ export const getUsersForSidebar = async (req, res) => {
       userLastMessageMap[user._id] = lastMsg ? lastMsg.createdAt : null;
     });
     await Promise.all(promises);
-    // Attach lastMessageAt to each user
+    // Determine mutual follow status
+    const me = await User.findById(userId).select("following followers");
     const usersWithLastMsg = filteredUsers.map((user) => {
       const u = user.toObject();
       u.lastMessageAt = userLastMessageMap[user._id] || null;
+      const meFollows = me.following?.some(
+        (id) => id.toString() === user._id.toString()
+      );
+      const theyFollow = user.following?.some(
+        (id) => id.toString() === userId.toString()
+      );
+      u.mutualFollow = Boolean(meFollows && theyFollow);
       return u;
     });
     res.json({
@@ -61,6 +69,25 @@ export const getMessages = async (req, res) => {
   try {
     const { id: selectedUserId } = req.params;
     const myId = req.user._id;
+    // Enforce mutual follow
+    const [me, other] = await Promise.all([
+      User.findById(myId).select("following"),
+      User.findById(selectedUserId).select("following"),
+    ]);
+    const meFollows = me?.following?.some(
+      (id) => id.toString() === selectedUserId
+    );
+    const theyFollow = other?.following?.some(
+      (id) => id.toString() === myId.toString()
+    );
+    if (!(meFollows && theyFollow)) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Chat locked until both users follow each other",
+        });
+    }
     const messages = await Message.find({
       $or: [
         { sender: myId, receiver: selectedUserId },
@@ -114,6 +141,21 @@ export const sendMessage = async (req, res) => {
 
     if (!text && !image) {
       return res.status(400).json({ message: "Message cannot be empty." });
+    }
+
+    // Enforce mutual follow
+    const [me, other] = await Promise.all([
+      User.findById(sender).select("following"),
+      User.findById(receiver).select("following"),
+    ]);
+    const meFollows = me?.following?.some((id) => id.toString() === receiver);
+    const theyFollow = other?.following?.some(
+      (id) => id.toString() === sender.toString()
+    );
+    if (!(meFollows && theyFollow)) {
+      return res
+        .status(403)
+        .json({ message: "Chat locked until both users follow each other" });
     }
 
     const newMessage = new Message({

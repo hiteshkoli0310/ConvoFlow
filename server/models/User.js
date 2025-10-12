@@ -11,6 +11,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^\S+$/, "Username must not contain spaces"],
+    },
     password: {
       type: String,
       required: true,
@@ -24,6 +32,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    followers: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+    ],
+    following: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+    ],
   },
   {
     timestamps: true,

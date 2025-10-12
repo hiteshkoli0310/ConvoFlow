@@ -23,6 +23,8 @@ const ChatContainer = () => {
     deleteMessage,
   } = useContext(ChatContext);
   const { authUser, onlineUsers } = useContext(AuthContext);
+  const { users, sendFollowRequest } = useContext(ChatContext);
+  const locked = selectedUser && users.find(u => u._id === selectedUser._id)?.mutualFollow === false;
   
   const scrollEnd = useRef();
   const messagesContainerRef = useRef();
@@ -55,8 +57,12 @@ const ChatContainer = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return;
-    
-    await sendMessage({ text: input.trim() });
+    try {
+      await sendMessage({ text: input.trim() });
+    } catch (err) {
+      // sendMessage already toasts on HTTP errors; ensure UI doesn't crash
+      return;
+    }
     setInput("");
     scrollToBottom();
   };
@@ -110,7 +116,7 @@ const ChatContainer = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedUser && selectedUser._id) {
       setIsLoading(true);
       getMessages(selectedUser._id).finally(() => {
         setTimeout(() => {
@@ -179,6 +185,17 @@ const ChatContainer = () => {
             </div>
           </div>
         
+          {locked && (
+            <div className="ml-auto">
+              <button
+                onClick={() => sendFollowRequest(selectedUser._id)}
+                className="px-3 py-2 rounded-lg text-white text-sm"
+                style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' }}
+              >
+                Send Follow Request
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -289,6 +306,11 @@ const ChatContainer = () => {
 
       {/* Message Input */}
       <div className="p-4 border-t glass-morphism-subtle">
+          {locked && (
+            <div className="flex-1 text-sm opacity-80" style={{ color: 'var(--text-muted)' }}>
+              Chat is locked until both of you follow each other.
+            </div>
+          )}
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
           {/* Image Upload */}
           <label className="cursor-pointer p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200">
@@ -316,13 +338,14 @@ const ChatContainer = () => {
                 color: 'var(--text-primary)'
               }}
               placeholder="Type a message..."
+              disabled={locked}
             />
           </div>
 
           {/* Send Button */}
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || locked}
             className={`p-3 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
               input.trim()
                 ? 'text-white hover:scale-105 active:scale-95'

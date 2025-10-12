@@ -5,6 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
+import followRouter from "./routes/followRoutes.js";
 import { Server } from "socket.io";
 
 //Create Express app and HTTP server
@@ -50,6 +51,7 @@ app.use("/api/status", (req, res) => {
 });
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/follow", followRouter);
 
 await connectDB();
 

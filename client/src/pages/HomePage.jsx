@@ -2,12 +2,13 @@ import React, { useContext } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatContainer from "../components/ChatContainer";
 import RightSidebar from "../components/RightSidebar";
+import RequestsPanel from "../components/RequestsPanel";
 import ThemeToggle from "../components/ThemeToggle";
 import InteractiveShowcase from "../components/InteractiveShowcase";
 import { ChatContext } from "../../context/ChatContext";
 
 const HomePage = () => {
-  const { selectedUser } = useContext(ChatContext);
+  const { selectedUser, showRequestsPanel, setShowRequestsPanel } = useContext(ChatContext);
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
@@ -63,13 +64,21 @@ const HomePage = () => {
           </div>
 
           {/* Right Sidebar - User Info (desktop only) */}
-          {selectedUser && (
+          {selectedUser && !showRequestsPanel && (
             <>
               {/* Separator Line */}
               <div className="w-px bg-gradient-to-b from-transparent via-[var(--accent-primary)] to-transparent opacity-30"></div>
               
               <div className="w-80 right-sidebar-panel hidden lg:block">
                 <RightSidebar />
+              </div>
+            </>
+          )}
+          {showRequestsPanel && (
+            <>
+              <div className="w-px bg-gradient-to-b from-transparent via-[var(--accent-primary)] to-transparent opacity-30"></div>
+              <div className="w-96 right-sidebar-panel hidden lg:block">
+                <RequestsPanel />
               </div>
             </>
           )}
@@ -85,6 +94,23 @@ const HomePage = () => {
         ) : (
           <div className="min-h-screen">
             <Sidebar />
+          </div>
+        )}
+        {showRequestsPanel && (
+          <div className="fixed inset-0 z-50">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowRequestsPanel(false)} />
+            <div className="absolute inset-x-0 bottom-0 h-[70%] rounded-t-2xl glass-morphism-strong border-t"
+                 style={{ borderColor: 'var(--border-subtle)' }}>
+              <div className="p-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
+                <span className="font-semibold">Follow Requests</span>
+                <button className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]" onClick={() => setShowRequestsPanel(false)}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="h-[calc(100%-52px)]">
+                <RequestsPanel hideHeader />
+              </div>
+            </div>
           </div>
         )}
       </div>

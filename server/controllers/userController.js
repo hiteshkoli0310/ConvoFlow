@@ -6,26 +6,37 @@ import { generateToken } from "../lib/utils.js";
 
 // Signup Controller
 export const signup = async (req, res) => {
-  const { fullName, email, password, bio } = req.body;
+  const { fullName, username, email, password, bio } = req.body;
   try {
-    if (!fullName || !email || !password) {
+    if (!fullName || !username || !email || !password) {
       return res.status(400).json({
         success: false,
         message: "Please fill all the fields",
       });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const uname = String(username).trim().toLowerCase();
+    if (!/^\S+$/.test(uname)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username must not contain spaces" });
+    }
+
+    const existingByEmail = await User.findOne({ email });
+    const existingByUsername = await User.findOne({ username: uname });
+    if (existingByEmail || existingByUsername) {
       return res.status(400).json({
         success: false,
-        message: "User already exists",
+        message: existingByEmail
+          ? "Email already in use"
+          : "Username already taken",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       fullName,
+      username: uname,
       email,
       password: hashedPassword,
       bio,
@@ -37,7 +48,7 @@ export const signup = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      newUser: userResponse,
+      userData: userResponse,
       token,
       message: "User created successfully",
     });
@@ -52,16 +63,19 @@ export const signup = async (req, res) => {
 
 // Login Controller
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, username, password } = req.body;
   try {
-    if (!email || !password) {
+    if ((!email && !username) || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Username/email and password are required",
       });
     }
 
-    const user = await User.findOne({ email });
+    const identifier =
+      username?.trim().toLowerCase() || email?.trim().toLowerCase();
+    const query = username ? { username: identifier } : { email: identifier };
+    const user = await User.findOne(query);
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({
         success: false,
@@ -142,16 +156,86 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      user: updatedUser,
-      message: "Profile updated successfully",
-    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        user: updatedUser,
+        message: "Profile updated successfully",
+      });
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+// Get user by username (protected)
+export const getUserByUsername = async (req, res) => {
+  try {
+    const meId = req.user._id.toString();
+    const uname = String(req.params.username || "")
+      .trim()
+      .toLowerCase();
+    if (!uname)
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+
+    const user = await User.findOne({ username: uname }).select("-password");
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    // mutual follow check
+    const me = await User.findById(meId).select("following");
+    const other = await User.findById(user._id).select("following");
+    const meFollows = me?.following?.some(
+      (id) => id.toString() === String(user._id)
+    );
+    const theyFollow = other?.following?.some((id) => id.toString() === meId);
+    const mutualFollow = Boolean(meFollows && theyFollow);
+
+    res.json({ success: true, user, mutualFollow });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+// Search users by username (protected)
+export const searchUsers = async (req, res) => {
+  try {
+    const meId = req.user._id.toString();
+    const q = String(req.query.q || "")
+      .trim()
+      .toLowerCase();
+    if (!q) return res.json({ success: true, users: [] });
+
+    // simple substring match; can be improved with full-text index later
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const found = await User.find({ username: regex, _id: { $ne: meId } })
+      .select("fullName username profilePic followers following")
+      .limit(7);
+
+    const me = await User.findById(meId).select("following");
+    const users = found.map((u) => {
+      const meFollows = me.following?.some(
+        (id) => id.toString() === u._id.toString()
+      );
+      const theyFollow = u.following?.some((id) => id.toString() === meId);
+      return {
+        _id: u._id,
+        fullName: u.fullName,
+        username: u.username,
+        profilePic: u.profilePic,
+        mutualFollow: Boolean(meFollows && theyFollow),
+      };
+    });
+    res.json({ success: true, users });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
   }
 };

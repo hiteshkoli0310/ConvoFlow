@@ -6,6 +6,7 @@ import InteractiveShowcase from "../components/InteractiveShowcase";
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign Up");
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,12 +30,19 @@ const LoginPage = () => {
     }
 
     try {
-      await login(currState === "Sign Up" ? "signup" : "login", {
-        fullName,
-        email,
-        password,
-        bio,
-      });
+      if (currState === "Sign Up") {
+        await login("signup", {
+          fullName,
+          username,
+          email,
+          password,
+          bio,
+        });
+      } else {
+        // login using username or email (one field)
+        const isEmail = email.includes("@");
+        await login("login", isEmail ? { email, password } : { username: email, password });
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -49,6 +57,7 @@ const LoginPage = () => {
     setEmail("");
     setPassword("");
     setBio("");
+    setUsername("");
   };
 
   return (
@@ -103,18 +112,37 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Email and Password - First Step */}
+            {/* Username Input (no spaces) */}
+            {currState === "Sign Up" && !isDataSubmitted && (
+              <div className="relative">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
+                  onFocus={() => setFocusedInput('username')}
+                  onBlur={() => setFocusedInput('')}
+                  className="retro-input w-full"
+                  placeholder="Username (no spaces)"
+                  pattern="^\S+$"
+                  title="Username must not contain spaces"
+                  required
+                />
+                <span className={`input-sweep ${focusedInput === 'username' ? 'active' : ''}`} />
+              </div>
+            )}
+
+            {/* Email/Username and Password - First Step */}
             {!isDataSubmitted && (
               <div className="space-y-5">
                 <div className="relative">
                   <input
-                    type="email"
+                    type={currState === "Login" ? "text" : "email"}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput('')}
                     className="retro-input w-full"
-                    placeholder="Email Address"
+                    placeholder={currState === "Login" ? "Email or Username" : "Email Address"}
                     required
                   />
                   <span className={`input-sweep ${focusedInput === 'email' ? 'active' : ''}`} />
