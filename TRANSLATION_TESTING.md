@@ -9,12 +9,14 @@ The right-click message translation feature has been successfully implemented.
 ### 1. Start the Development Servers
 
 **Terminal 1 - Backend:**
+
 ```powershell
 cd e:\Project\chat_app\server
 npm run server
 ```
 
 **Terminal 2 - Frontend:**
+
 ```powershell
 cd e:\Project\chat_app\client
 npm run dev
@@ -46,11 +48,13 @@ English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean
 ## 📝 What Was Added
 
 ### Backend (server/)
+
 - ✅ `lib/translator.js` - Translation service using MyMemory API
 - ✅ `controllers/messageController.js` - `translateMessage` function
 - ✅ `routes/messageRoutes.js` - POST `/api/messages/translate/:messageId`
 
 ### Frontend (client/)
+
 - ✅ `lib/languages.js` - Language list and utilities
 - ✅ `src/components/LanguageSelector.jsx` - Language picker modal
 - ✅ `context/ChatContext.jsx` - Translation state & caching
@@ -65,15 +69,18 @@ English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean
 ## 🚨 Troubleshooting
 
 **Issue: Translation not working**
+
 - Check browser console for errors
 - Verify backend server is running
 - Check MyMemory API status
 
 **Issue: Right-click menu not showing**
+
 - Clear browser cache
 - Verify you're right-clicking on a message bubble (not deleted)
 
 **Issue: "Translation failed" error**
+
 - You may have hit the 10,000 words/day limit
 - Check internet connection
 - Try a different message

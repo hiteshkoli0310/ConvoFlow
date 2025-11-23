@@ -19,6 +19,8 @@ export const ChatProvider = ({ children }) => {
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [showRequestsPanel, setShowRequestsPanel] = useState(false);
   const [translationCache, setTranslationCache] = useState({});
+  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState({});
+  const [autoTranslateLanguage, setAutoTranslateLanguage] = useState({});
   const { socket, axios, authUser } = useContext(AuthContext);
   
   const getMessages = useCallback(
@@ -420,6 +422,26 @@ export const ChatProvider = ({ children }) => {
     [axios, translationCache]
   );
 
+  const toggleAutoTranslate = useCallback((userId, enabled, language = 'en') => {
+    setAutoTranslateEnabled((prev) => ({
+      ...prev,
+      [userId]: enabled,
+    }));
+    if (enabled && language) {
+      setAutoTranslateLanguage((prev) => ({
+        ...prev,
+        [userId]: language,
+      }));
+    }
+  }, []);
+
+  const updateAutoTranslateLanguage = useCallback((userId, language) => {
+    setAutoTranslateLanguage((prev) => ({
+      ...prev,
+      [userId]: language,
+    }));
+  }, []);
+
   const value = {
     messages,
     users,
@@ -439,6 +461,10 @@ export const ChatProvider = ({ children }) => {
     showRequestsPanel,
     setShowRequestsPanel,
     translateMessage,
+    autoTranslateEnabled,
+    autoTranslateLanguage,
+    toggleAutoTranslate,
+    updateAutoTranslateLanguage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

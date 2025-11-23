@@ -82,12 +82,10 @@ export const getMessages = async (req, res) => {
       (id) => id.toString() === myId.toString()
     );
     if (!(meFollows && theyFollow)) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Chat locked until both users follow each other",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Chat locked until both users follow each other",
+      });
     }
     const messages = await Message.find({
       $or: [
@@ -239,7 +237,7 @@ export const translateMessage = async (req, res) => {
 
     // Find the message
     const message = await Message.findById(messageId);
-    
+
     if (!message) {
       return res.status(404).json({
         success: false,
@@ -271,7 +269,7 @@ export const translateMessage = async (req, res) => {
     const translationResult = await translateText(
       message.text,
       targetLanguage,
-      sourceLanguage || 'auto'
+      sourceLanguage || "auto"
     );
 
     if (!translationResult.success) {

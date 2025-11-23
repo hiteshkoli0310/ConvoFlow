@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    preferredLanguage: {
+      type: String,
+      default: "en",
+    },
     followers: [
       { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
     ],

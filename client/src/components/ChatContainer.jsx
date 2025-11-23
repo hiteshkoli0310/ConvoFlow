@@ -24,6 +24,10 @@ const ChatContainer = () => {
     getMessages,
     deleteMessage,
     translateMessage,
+    autoTranslateEnabled,
+    autoTranslateLanguage,
+    toggleAutoTranslate,
+    updateAutoTranslateLanguage,
   } = useContext(ChatContext);
   const { authUser, onlineUsers } = useContext(AuthContext);
   const { users, sendFollowRequest } = useContext(ChatContext);
@@ -43,6 +47,8 @@ const ChatContainer = () => {
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [messageToTranslate, setMessageToTranslate] = useState(null);
   const [translatedMessages, setTranslatedMessages] = useState({});
+  const [showAutoTranslateLanguageSelector, setShowAutoTranslateLanguageSelector] = useState(false);
+  const [isAutoTranslateMode, setIsAutoTranslateMode] = useState(false);
 
   const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
@@ -136,6 +142,51 @@ const ChatContainer = () => {
     });
   };
 
+  const handleAutoTranslateToggle = () => {
+    if (!selectedUser) return;
+    
+    const userId = selectedUser._id;
+    const currentlyEnabled = autoTranslateEnabled[userId];
+    
+    if (!currentlyEnabled) {
+      // Enabling - show language selector
+      setIsAutoTranslateMode(true);
+      setShowAutoTranslateLanguageSelector(true);
+    } else {
+      // Disabling
+      toggleAutoTranslate(userId, false);
+      setTranslatedMessages({});
+      toast.success('Auto-translate disabled');
+    }
+  };
+
+  const handleAutoTranslateLanguageSelect = async (targetLang) => {
+    if (!selectedUser) return;
+    
+    const userId = selectedUser._id;
+    toggleAutoTranslate(userId, true, targetLang);
+    toast.success(`Auto-translate enabled: ${getLanguageName(targetLang)}`);
+    
+    // Auto-translate all existing messages from this user
+    const messagesToTranslate = messages.filter(
+      (msg) => String(msg.sender) === String(userId) && msg.text && !msg.deleted
+    );
+    
+    for (const msg of messagesToTranslate) {
+      try {
+        const result = await translateMessage(msg._id, targetLang);
+        if (result) {
+          setTranslatedMessages((prev) => ({
+            ...prev,
+            [msg._id]: result,
+          }));
+        }
+      } catch (error) {
+        console.error('Auto-translate error:', error);
+      }
+    }
+  };
+
   // Handle click outside to close dropdowns and modals
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -169,6 +220,41 @@ const ChatContainer = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Auto-translate new messages when auto-translate is enabled
+  useEffect(() => {
+    if (!selectedUser) return;
+    
+    const userId = selectedUser._id;
+    const isEnabled = autoTranslateEnabled[userId];
+    const targetLang = autoTranslateLanguage[userId];
+    
+    if (isEnabled && targetLang) {
+      // Find messages from selected user that aren't translated yet
+      const newMessages = messages.filter(
+        (msg) =>
+          String(msg.sender) === String(userId) &&
+          msg.text &&
+          !msg.deleted &&
+          !translatedMessages[msg._id]
+      );
+      
+      // Translate new messages
+      newMessages.forEach(async (msg) => {
+        try {
+          const result = await translateMessage(msg._id, targetLang);
+          if (result) {
+            setTranslatedMessages((prev) => ({
+              ...prev,
+              [msg._id]: result,
+            }));
+          }
+        } catch (error) {
+          console.error('Auto-translate error:', error);
+        }
+      });
+    }
+  }, [messages, selectedUser, autoTranslateEnabled, autoTranslateLanguage, translateMessage, translatedMessages]);
 
   if (isLoading && messages.length === 0) {
     return (
@@ -224,8 +310,30 @@ const ChatContainer = () => {
             </div>
           </div>
         
-          {locked && (
-            <div className="ml-auto">
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Auto-Translate Toggle Button */}
+            {!locked && (
+              <button
+                onClick={handleAutoTranslateToggle}
+                className={`p-2 rounded-lg transition-all duration-200 hover:scale-105 ${
+                  autoTranslateEnabled[selectedUser._id]
+                    ? 'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white'
+                    : 'hover:bg-[var(--bg-secondary)]'
+                }`}
+                title={autoTranslateEnabled[selectedUser._id] 
+                  ? `Auto-translate ON: ${getLanguageName(autoTranslateLanguage[selectedUser._id])}` 
+                  : 'Enable auto-translate'}
+                style={{ 
+                  color: autoTranslateEnabled[selectedUser._id] ? '#ffffff' : 'var(--text-primary)'
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+              </button>
+            )}
+
+            {locked && (
               <button
                 onClick={() => sendFollowRequest(selectedUser._id)}
                 className="px-3 py-2 rounded-lg text-white text-sm"
@@ -233,8 +341,8 @@ const ChatContainer = () => {
               >
                 Send Follow Request
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -521,6 +629,18 @@ const ChatContainer = () => {
             setShowLanguageSelector(false);
             setMessageToTranslate(null);
           }}
+        />
+      )}
+
+      {/* Auto-Translate Language Selector Modal */}
+      {showAutoTranslateLanguageSelector && (
+        <LanguageSelector
+          onSelect={handleAutoTranslateLanguageSelect}
+          onClose={() => {
+            setShowAutoTranslateLanguageSelector(false);
+            setIsAutoTranslateMode(false);
+          }}
+          currentLang={autoTranslateLanguage[selectedUser?._id] || 'en'}
         />
       )}
     </div>

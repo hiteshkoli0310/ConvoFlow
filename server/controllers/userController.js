@@ -113,7 +113,7 @@ export const checkAuth = (req, res) => {
 // Update Profile Controller
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic, bio, fullName } = req.body;
+    const { profilePic, bio, fullName, preferredLanguage } = req.body;
     const userId = req.user._id;
 
     if (!fullName || fullName.trim() === "") {
@@ -127,6 +127,10 @@ export const updateProfile = async (req, res) => {
       fullName: fullName.trim(),
       bio: bio || "",
     };
+
+    if (preferredLanguage) {
+      updateData.preferredLanguage = preferredLanguage;
+    }
 
     if (profilePic) {
       try {
@@ -156,13 +160,11 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        user: updatedUser,
-        message: "Profile updated successfully",
-      });
+    res.status(200).json({
+      success: true,
+      user: updatedUser,
+      message: "Profile updated successfully",
+    });
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({
