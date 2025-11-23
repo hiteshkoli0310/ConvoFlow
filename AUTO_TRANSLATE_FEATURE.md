@@ -7,12 +7,14 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 ## 🎯 Features
 
 ### Auto-Translate Toggle Button
+
 - Located in the chat header (top right, next to user info)
 - Translate icon that lights up when enabled
 - Shows current translation language in tooltip when active
 - Smooth animations and visual feedback
 
 ### How It Works
+
 1. **Click the translate icon** in the chat header
 2. **Select your preferred language** from the modal
 3. **All messages from the other person are automatically translated**
@@ -21,6 +23,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 6. **Click the icon again to disable** auto-translate
 
 ### Visual Indicators
+
 - **OFF State**: Gray translate icon, hover effect
 - **ON State**: Gradient blue/green icon, glowing effect
 - **Tooltip**: Shows "Auto-translate ON: Spanish" when active
@@ -29,14 +32,18 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 ## 🔧 Technical Implementation
 
 ### Backend Changes
+
 1. **User Model** (`server/models/User.js`)
+
    - Added `preferredLanguage` field (default: 'en')
 
 2. **User Controller** (`server/controllers/userController.js`)
    - Updated `updateProfile` to support `preferredLanguage`
 
 ### Frontend Changes
+
 1. **ChatContext** (`client/context/ChatContext.jsx`)
+
    - Added `autoTranslateEnabled` state (per conversation)
    - Added `autoTranslateLanguage` state (per conversation)
    - Added `toggleAutoTranslate()` function
@@ -52,6 +59,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 ## 🎨 UI/UX Features
 
 ### Toggle Button Design
+
 - Matches Telegram's translation button style
 - Position: Right side of chat header
 - Size: Icon button (40x40px)
@@ -61,6 +69,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
   - Hover: Scale animation (105%)
 
 ### Translation Flow
+
 1. User clicks translate button
 2. Language selector modal appears
 3. User picks language (searchable list)
@@ -72,6 +81,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 ## 📝 How to Test
 
 ### Test Auto-Translate
+
 1. Start both frontend and backend
 2. Open a chat with messages
 3. Click the translate icon (top right)
@@ -82,6 +92,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 8. Click translate icon again to disable
 
 ### Test Different Languages
+
 - English → Spanish
 - Spanish → English
 - French → German
@@ -89,6 +100,7 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 - Any supported language pair
 
 ### Test Edge Cases
+
 - Toggle on/off multiple times
 - Switch between different chats (state is per-conversation)
 - Translate already-translated messages (uses cache)
@@ -96,7 +108,9 @@ A Telegram-style real-time translation toggle has been added to the chat interfa
 - Locked chats (button hidden)
 
 ## 🌐 Supported Languages
+
 Same 30 languages as manual translation:
+
 - English, Spanish, French, German, Italian, Portuguese
 - Russian, Japanese, Korean, Chinese, Arabic, Hindi
 - Turkish, Dutch, Polish, Swedish, Danish, Finnish
@@ -107,12 +121,15 @@ Same 30 languages as manual translation:
 ## 🔄 State Management
 
 ### Per-Conversation State
+
 Each conversation has its own:
+
 - `autoTranslateEnabled[userId]` - true/false
 - `autoTranslateLanguage[userId]` - language code
 - `translatedMessages` - cached translations
 
 ### Switching Chats
+
 - State is preserved per conversation
 - When you switch back, settings remain
 - Translations are cached and reused
@@ -134,6 +151,7 @@ The feature is fully functional and ready for testing. The toggle button will ap
 ---
 
 **Next Steps:**
+
 1. Test with different language combinations
 2. Verify real-time translation of incoming messages
 3. Check performance with long message histories

@@ -169,13 +169,8 @@ const Sidebar = () => {
               }, 250);
             }}
             type="text"
-            className="w-full px-4 py-3 pl-11 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
-            style={{
-              background: 'var(--bg-secondary)',
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-primary)'
-            }}
-            placeholder="Search by username..."
+            className="w-full input-polished !pl-12 placeholder:text-[var(--text-muted)]"
+            placeholder=""
           />
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 opacity-60" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -236,7 +231,7 @@ const Sidebar = () => {
       {/* User List (only mutual followers) */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="p-4 space-y-2">
-          {sortedUsers.map((user) => {
+          {sortedUsers.map((user, index) => {
             const isOnline = onlineUsers.includes(user._id);
             const unseenCount = unseenMessages[user._id];
             const isSelected = selectedUser?._id === user._id;
@@ -244,13 +239,14 @@ const Sidebar = () => {
             return (
               <div
                 key={user._id}
-                className={`p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                className={`p-4 rounded-xl cursor-pointer transition-all duration-300 animate-slide-up-fade ${
                   isSelected 
-                    ? 'glass-morphism-strong border-2' 
-                    : 'glass-morphism hover:glass-morphism-strong'
+                    ? 'glass-morphism-strong border-2 shadow-lg scale-[1.02]' 
+                    : 'glass-morphism hover:glass-morphism-strong hover:scale-[1.02]'
                 }`}
                 style={{
-                  borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'
+                  borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                  animationDelay: `${index * 0.05}s`
                 }}
                 onClick={() => {
                   setSelectedUser(user);
@@ -264,24 +260,24 @@ const Sidebar = () => {
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
                     <img
-                      className="w-12 h-12 rounded-full object-cover"
+                      className={`w-12 h-12 rounded-full object-cover transition-transform duration-300 ${isSelected ? 'ring-2 ring-[var(--accent-primary)] ring-offset-2 ring-offset-[var(--bg-primary)]' : ''}`}
                       src={user.profilePic || assets.avatar_icon}
                       alt=""
                     />
                     {/* Online Indicator */}
                     <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 ${
-                      isOnline ? 'bg-green-500' : 'bg-gray-400'
+                      isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-400'
                     }`} style={{ borderColor: 'var(--bg-primary)' }}></div>
                   </div>
 
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                      <p className={`font-medium truncate transition-colors ${isSelected ? 'text-[var(--accent-primary)]' : ''}`} style={{ color: isSelected ? undefined : 'var(--text-primary)' }}>
                         {user.fullName}
                       </p>
                       {unseenCount > 0 && (
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md animate-pulse"
                              style={{ background: 'var(--accent-primary)' }}>
                           {unseenCount}
                         </div>
@@ -291,7 +287,6 @@ const Sidebar = () => {
                       {isOnline ? "Online" : "Offline"}
                     </p>
                   </div>
-                  {/* CTA area removed: entire card is clickable; follow actions handled in search suggestions */}
                 </div>
               </div>
             );

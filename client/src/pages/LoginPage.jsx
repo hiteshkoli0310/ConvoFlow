@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext";
 import InteractiveShowcase from "../components/InteractiveShowcase";
+import toast from "react-hot-toast";
 
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign Up");
@@ -10,6 +11,7 @@ const LoginPage = () => {
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +23,14 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    if (currState === "Sign Up") {
+      if (!termsAccepted) {
+        toast.error("Please agree to the Terms & Privacy Policy");
+        setIsLoading(false);
+        return;
+      }
+    }
+
     if (currState === "Sign Up" && !isDataSubmitted) {
       setTimeout(() => {
         setIsDataSubmitted(true);
@@ -58,6 +68,7 @@ const LoginPage = () => {
     setPassword("");
     setBio("");
     setUsername("");
+    setTermsAccepted(false);
   };
 
   return (
@@ -67,7 +78,7 @@ const LoginPage = () => {
 
       {/* Foreground content aligned to right on md+ */}
       <div className="relative z-10 min-h-screen flex items-center justify-center md:justify-end py-10 px-6 md:px-10">
-        <div className="w-full max-w-md md:mr-10 glass-card p-6 md:p-7 slide-in-up">
+        <div className="w-full max-w-md md:mr-10 glass-card-polished p-6 md:p-7 slide-in-up">
           {/* Compact branding header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -104,11 +115,10 @@ const LoginPage = () => {
                   onChange={(e) => setFullName(e.target.value)}
                   onFocus={() => setFocusedInput('fullName')}
                   onBlur={() => setFocusedInput('')}
-                  className="retro-input w-full"
+                  className="input-polished w-full"
                   placeholder="Full Name"
                   required
                 />
-                <span className={`input-sweep ${focusedInput === 'fullName' ? 'active' : ''}`} />
               </div>
             )}
 
@@ -121,13 +131,12 @@ const LoginPage = () => {
                   onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
                   onFocus={() => setFocusedInput('username')}
                   onBlur={() => setFocusedInput('')}
-                  className="retro-input w-full"
+                  className="input-polished w-full"
                   placeholder="Username (no spaces)"
                   pattern="^\S+$"
                   title="Username must not contain spaces"
                   required
                 />
-                <span className={`input-sweep ${focusedInput === 'username' ? 'active' : ''}`} />
               </div>
             )}
 
@@ -141,11 +150,10 @@ const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput('')}
-                    className="retro-input w-full"
+                    className="input-polished w-full"
                     placeholder={currState === "Login" ? "Email or Username" : "Email Address"}
                     required
                   />
-                  <span className={`input-sweep ${focusedInput === 'email' ? 'active' : ''}`} />
                 </div>
 
                 <div className="relative">
@@ -155,7 +163,7 @@ const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput('')}
-                    className="retro-input w-full pr-12"
+                    className="input-polished w-full pr-12"
                     placeholder="Password"
                     required
                   />
@@ -176,7 +184,6 @@ const LoginPage = () => {
                       </svg>
                     )}
                   </button>
-                  <span className={`input-sweep ${focusedInput === 'password' ? 'active' : ''}`} />
                 </div>
               </div>
             )}
@@ -190,10 +197,9 @@ const LoginPage = () => {
                   onFocus={() => setFocusedInput('bio')}
                   onBlur={() => setFocusedInput('')}
                   rows={4}
-                  className="retro-input w-full resize-none"
+                  className="input-polished w-full resize-none"
                   placeholder="Tell us a bit about yourself..."
                 />
-                <span className={`input-sweep ${focusedInput === 'bio' ? 'active' : ''}`} />
               </div>
             )}
 
@@ -201,7 +207,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="retro-cta w-full disabled:opacity-70 disabled:cursor-not-allowed"
+              className="btn-polished w-full disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -222,15 +228,28 @@ const LoginPage = () => {
 
             {/* Compact footer actions */}
             <div className="flex items-center justify-between text-sm" style={{ color: 'var(--text-muted)' }}>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  id="terms"
-                  className="w-4 h-4 rounded border-2"
-                  style={{ borderColor: 'var(--border-subtle)', accentColor: 'var(--accent-primary)' }}
-                />
-                <label htmlFor="terms" className="cursor-pointer">I agree</label>
-              </div>
+              {currState === "Sign Up" ? (
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="terms"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-4 h-4 rounded border-2 cursor-pointer appearance-none relative shrink-0 transition-all duration-200 checked:bg-[var(--accent-primary)] checked:border-[var(--accent-primary)]"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  />
+                  {/* Custom Checkmark */}
+                  <svg className={`absolute w-4 h-4 pointer-events-none text-white transition-opacity duration-200 ${termsAccepted ? 'opacity-100' : 'opacity-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <label htmlFor="terms" className="cursor-pointer select-none hover:text-[var(--text-primary)] transition-colors">
+                    I agree to the <span className="underline decoration-[var(--accent-primary)]">Terms</span>
+                  </label>
+                </div>
+              ) : (
+                <div></div> /* Spacer for Login state */
+              )}
+              
               {currState === "Sign Up" ? (
                 <button
                   type="button"

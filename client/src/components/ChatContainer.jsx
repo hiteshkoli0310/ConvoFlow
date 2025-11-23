@@ -365,17 +365,18 @@ const ChatContainer = () => {
             return (
               <div
                 key={msg._id || index} // ✅ Use msg._id instead of index
-                className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+                className={`flex ${isSender ? "justify-end" : "justify-start"} animate-slide-up-fade`}
                 style={{
                   marginBottom: '20px', // ✅ Consistent spacing for all messages
-                  width: '100%'
+                  width: '100%',
+                  animationDelay: '0.1s'
                 }}
               >
                 <div
-                  className={`relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                  className={`relative max-w-xs lg:max-w-md px-4 py-3 shadow-md transition-all duration-300 hover:shadow-lg ${
                     isSender
-                      ? `text-white rounded-br-none`
-                      : `rounded-bl-none glass-morphism`
+                      ? `text-white rounded-2xl rounded-br-none`
+                      : `rounded-2xl rounded-bl-none glass-morphism`
                   } ${isDeleted ? "opacity-60 italic" : ""}`}
                   style={{
                     background: isSender 
@@ -483,7 +484,7 @@ const ChatContainer = () => {
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-8 w-12 h-12 rounded-full glass-morphism-strong shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200"
+          className="absolute bottom-24 right-8 w-12 h-12 rounded-full glass-morphism-strong shadow-lg flex items-center justify-center hover:scale-110 transition-all duration-300 animate-fade-in-scale z-20"
         >
           <svg className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -494,20 +495,20 @@ const ChatContainer = () => {
       {/* Message Input */}
       <div className="p-4 border-t glass-morphism-subtle">
           {locked && (
-            <div className="flex-1 text-sm opacity-80" style={{ color: 'var(--text-muted)' }}>
+            <div className="flex-1 text-sm opacity-80 mb-2 text-center" style={{ color: 'var(--text-muted)' }}>
               Chat is locked until both of you follow each other.
             </div>
           )}
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
           {/* Image Upload */}
-          <label className="cursor-pointer p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200">
+          <label className="cursor-pointer p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-all duration-200 group">
             <input
               type="file"
               accept="image/*"
               onChange={handleSendImage}
               className="hidden"
             />
-            <svg className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </label>
@@ -518,12 +519,7 @@ const ChatContainer = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="w-full px-4 py-3 pr-12 rounded-xl border-2 input-glow transition-all duration-300 placeholder:text-[var(--text-muted)]"
-              style={{
-                background: 'var(--bg-secondary)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-primary)'
-              }}
+              className="w-full input-polished pr-12 placeholder:text-[var(--text-muted)]"
               placeholder="Type a message..."
               disabled={locked}
             />
@@ -533,20 +529,37 @@ const ChatContainer = () => {
           <button
             type="submit"
             disabled={!input.trim() || locked}
-            className={`p-3 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
+            className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group overflow-hidden ${
               input.trim()
-                ? 'text-white hover:scale-105 active:scale-95'
-                : ''
+                ? 'shadow-[0_0_20px_rgba(0,220,130,0.6)] hover:shadow-[0_0_30px_rgba(0,220,130,0.8)] hover:scale-105 active:scale-95'
+                : 'opacity-50 cursor-not-allowed border border-[var(--border-subtle)]'
             }`}
             style={{
-              background: input.trim()
-                ? `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))`
-                : 'rgba(var(--accent-primary-rgb), 0.15)',
-              border: input.trim() ? 'none' : '1px solid rgba(var(--accent-primary-rgb), 0.35)',
-              color: input.trim() ? '#ffffff' : 'rgb(5, 140, 66)'
+              background: input.trim() ? '#000000' : 'transparent',
             }}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Liquid Fill Effect (Only visible when active) */}
+            {input.trim() && (
+              <>
+                {/* The Liquid Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#00DC82] via-[#00DC82] to-transparent opacity-90" style={{ top: '40%' }}></div>
+                
+                {/* Glossy Shine */}
+                <div className="absolute inset-0 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]"></div>
+                
+                {/* Internal Glow */}
+                <div className="absolute inset-0 rounded-full shadow-[inset_0_-5px_10px_rgba(0,220,130,0.5)]"></div>
+              </>
+            )}
+
+            {/* Icon */}
+            <svg 
+              className={`w-5 h-5 relative z-10 ${input.trim() ? 'text-white' : 'text-[var(--text-muted)]'}`} 
+              style={{ transform: 'rotate(45deg)' }}
+              fill={input.trim() ? "currentColor" : "none"} 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

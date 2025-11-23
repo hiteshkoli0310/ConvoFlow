@@ -44,19 +44,20 @@ const HomePage = () => {
             {selectedUser ? (
               <ChatContainer />
             ) : (
-              <div className="text-center">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full glass-morphism-strong flex items-center justify-center">
-                  <svg className="w-16 h-16 opacity-60" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center animate-fade-in-scale">
+                <div className="w-32 h-32 mx-auto mb-6 rounded-full glass-morphism-strong flex items-center justify-center shadow-2xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[var(--accent-primary)] to-transparent opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+                  <svg className="w-16 h-16 opacity-60 group-hover:scale-110 transition-transform duration-500" style={{ color: 'var(--accent-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
+                <h3 className="text-3xl font-bold mb-3 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent drop-shadow-sm">
                   Welcome to ConvoFlow
                 </h3>
-                <p className="opacity-80 mb-6" style={{ color: 'var(--text-muted)' }}>
+                <p className="opacity-80 mb-6 text-lg" style={{ color: 'var(--text-muted)' }}>
                   Select a conversation to start chatting
                 </p>
-                <div className="text-sm opacity-60" style={{ color: 'var(--text-muted)' }}>
+                <div className="text-sm opacity-60 font-medium tracking-wide" style={{ color: 'var(--text-muted)' }}>
                   Chat anytime, anywhere
                 </div>
               </div>
