@@ -12,6 +12,8 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import { FaTrashAlt, FaEllipsisV } from "react-icons/fa";
 import RightSidebar from "./RightSidebar";
+import LanguageSelector from "./LanguageSelector";
+import { getLanguageName } from "../../lib/languages";
 
 const ChatContainer = () => {
   const {
@@ -21,6 +23,7 @@ const ChatContainer = () => {
     sendMessage,
     getMessages,
     deleteMessage,
+    translateMessage,
   } = useContext(ChatContext);
   const { authUser, onlineUsers } = useContext(AuthContext);
   const { users, sendFollowRequest } = useContext(ChatContext);
@@ -37,6 +40,9 @@ const ChatContainer = () => {
   const [showDropdown, setShowDropdown] = useState(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [messageToTranslate, setMessageToTranslate] = useState(null);
+  const [translatedMessages, setTranslatedMessages] = useState({});
 
   const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
@@ -95,6 +101,39 @@ const ChatContainer = () => {
       setMessageToDelete(null);
       setShowDropdown(null); // Ensure dropdown is closed after deletion
     }
+  };
+
+  const handleTranslateClick = (msg) => {
+    setMessageToTranslate(msg);
+    setShowLanguageSelector(true);
+    setShowDropdown(null);
+  };
+
+  const handleLanguageSelect = async (targetLang) => {
+    if (!messageToTranslate) return;
+
+    try {
+      const result = await translateMessage(messageToTranslate._id, targetLang);
+      
+      if (result) {
+        // Store translation in local state
+        setTranslatedMessages((prev) => ({
+          ...prev,
+          [messageToTranslate._id]: result,
+        }));
+        toast.success(`Translated to ${getLanguageName(targetLang)}`);
+      }
+    } catch (error) {
+      // Error already toasted in translateMessage
+    }
+  };
+
+  const handleShowOriginal = (messageId) => {
+    setTranslatedMessages((prev) => {
+      const updated = { ...prev };
+      delete updated[messageId];
+      return updated;
+    });
   };
 
   // Handle click outside to close dropdowns and modals
@@ -238,11 +277,20 @@ const ChatContainer = () => {
                   }}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    if (!isDeleted && isSender) {
+                    if (!isDeleted) {
                       setShowDropdown(showDropdown === msg._id ? null : msg._id);
                     }
                   }}
                 >
+                  {/* Translation Badge */}
+                  {translatedMessages[msg._id] && (
+                    <div className="mb-2 pb-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                      <span className="text-xs opacity-75">
+                        Translated from {getLanguageName(translatedMessages[msg._id].detectedSourceLang)}
+                      </span>
+                    </div>
+                  )}
+
                   {msg.image ? (
                     <img
                       className="w-full rounded-lg mb-2"
@@ -250,7 +298,9 @@ const ChatContainer = () => {
                       alt=""
                     />
                   ) : (
-                    <p className="break-words">{msg.text}</p>
+                    <p className="break-words">
+                      {translatedMessages[msg._id]?.translatedText || msg.text}
+                    </p>
                   )}
 
                   <div className="flex items-center justify-between mt-2">
@@ -264,22 +314,51 @@ const ChatContainer = () => {
                     )}
                   </div>
 
-                  {/* Message Options - Only show for non-deleted messages */}
+                  {/* Show Original Button */}
+                  {translatedMessages[msg._id] && !msg.deleted && (
+                    <button
+                      onClick={() => handleShowOriginal(msg._id)}
+                      className="mt-2 text-xs underline opacity-75 hover:opacity-100 transition-opacity"
+                    >
+                      Show original
+                    </button>
+                  )}
+
+                  {/* Message Options - Updated with Translate */}
                   {showDropdown === msg._id && !msg.deleted && (
                     <div 
                       ref={dropdownRef}
                       className="absolute top-0 right-0 mt-2 mr-2 z-50">
                       <div className="glass-morphism-strong rounded-lg shadow-xl p-1">
-                        <button
-                          onClick={() => {
-                            handleDeleteClick(msg);
-                            setShowDropdown(null); // Close the dropdown after clicking delete
-                          }}
-                          className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200"
-                        >
-                          <FaTrashAlt className="w-3 h-3" />
-                          Delete
-                        </button>
+                        {/* Translate Option - Show for all messages with text */}
+                        {msg.text && (
+                          <button
+                            onClick={() => {
+                              handleTranslateClick(msg);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 hover:bg-blue-500/10 rounded-lg text-sm transition-all duration-200 w-full"
+                            style={{ color: isSender ? '#ffffff' : 'var(--accent-primary)' }}
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                            </svg>
+                            Translate
+                          </button>
+                        )}
+                        
+                        {/* Delete Option - Only for sender */}
+                        {isSender && (
+                          <button
+                            onClick={() => {
+                              handleDeleteClick(msg);
+                              setShowDropdown(null);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-all duration-200 w-full"
+                          >
+                            <FaTrashAlt className="w-3 h-3" />
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -432,6 +511,17 @@ const ChatContainer = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Language Selector Modal */}
+      {showLanguageSelector && (
+        <LanguageSelector
+          onSelect={handleLanguageSelect}
+          onClose={() => {
+            setShowLanguageSelector(false);
+            setMessageToTranslate(null);
+          }}
+        />
       )}
     </div>
   );

@@ -18,6 +18,7 @@ export const ChatProvider = ({ children }) => {
   const [messageCache, setMessageCache] = useState({});
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [showRequestsPanel, setShowRequestsPanel] = useState(false);
+  const [translationCache, setTranslationCache] = useState({});
   const { socket, axios, authUser } = useContext(AuthContext);
   
   const getMessages = useCallback(
@@ -385,6 +386,40 @@ export const ChatProvider = ({ children }) => {
     [messages, selectedUser, axios, socket]
   );
 
+  const translateMessage = useCallback(
+    async (messageId, targetLanguage) => {
+      try {
+        // Check cache first
+        const cacheKey = `${messageId}_${targetLanguage}`;
+        if (translationCache[cacheKey]) {
+          return translationCache[cacheKey];
+        }
+
+        // Call API
+        const { data } = await axios.post(`/api/messages/translate/${messageId}`, {
+          targetLanguage,
+        });
+
+        if (data.success) {
+          // Cache the result
+          setTranslationCache((prev) => ({
+            ...prev,
+            [cacheKey]: data.data,
+          }));
+          return data.data;
+        } else {
+          toast.error(data.message || "Translation failed");
+          return null;
+        }
+      } catch (error) {
+        console.error("Translation error:", error);
+        toast.error(error.response?.data?.message || "Translation failed");
+        return null;
+      }
+    },
+    [axios, translationCache]
+  );
+
   const value = {
     messages,
     users,
@@ -403,6 +438,7 @@ export const ChatProvider = ({ children }) => {
     rejectRequest,
     showRequestsPanel,
     setShowRequestsPanel,
+    translateMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

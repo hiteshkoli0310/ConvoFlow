@@ -2,6 +2,7 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
+import { translateText } from "../lib/translator.js";
 
 //Get all user except the logged in user
 export const getUsersForSidebar = async (req, res) => {
@@ -220,5 +221,82 @@ export const deleteMessage = async (req, res) => {
     res.json({ success: true, message: "Message deleted", data: message });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const translateMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { targetLanguage, sourceLanguage } = req.body;
+
+    // Validate inputs
+    if (!targetLanguage) {
+      return res.status(400).json({
+        success: false,
+        message: "Target language is required",
+      });
+    }
+
+    // Find the message
+    const message = await Message.findById(messageId);
+    
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found",
+      });
+    }
+
+    // Check if user has access to this message (sender or receiver)
+    const userId = req.user._id.toString();
+    const isSender = message.sender.toString() === userId;
+    const isReceiver = message.receiver.toString() === userId;
+
+    if (!isSender && !isReceiver) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to translate this message",
+      });
+    }
+
+    // Don't translate if message has no text or is deleted
+    if (!message.text || message.deleted) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot translate this message",
+      });
+    }
+
+    // Perform translation
+    const translationResult = await translateText(
+      message.text,
+      targetLanguage,
+      sourceLanguage || 'auto'
+    );
+
+    if (!translationResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: translationResult.error || "Translation failed",
+      });
+    }
+
+    // Return translation result
+    res.status(200).json({
+      success: true,
+      data: {
+        messageId: message._id,
+        originalText: message.text,
+        translatedText: translationResult.translatedText,
+        detectedSourceLang: translationResult.detectedSourceLang,
+        targetLang: translationResult.targetLang,
+      },
+    });
+  } catch (error) {
+    console.error("Translation error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
